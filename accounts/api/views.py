@@ -86,3 +86,42 @@ class AccountViewSet(viewsets.ViewSet):
             'success': True,
             'user': UserSerializer(instance=user).data
         }, status=201)
+
+    @action(methods=['POST'], detail=False)
+    def signoff(self, request):
+        # check input
+        serializer = LoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'success': False,
+                'message': 'Please check input.',
+                'error': serializer.errors,
+            }, status=400)
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+
+        # not allow delete 'admin'
+        if username == 'admin':
+            return Response({
+                'success': False,
+                'message': 'admin cannot be signed off'
+            }, status=403)
+
+        # authenticate
+        user = django_authenticate(username=username, password=password)
+        if not user or user.is_anonymous:
+            return Response({
+                'success': False,
+                'message': 'username and password does not match',
+            }, status=400)
+
+        # logout
+        if request.user == user:
+            django_logout(request)
+
+        # signoff
+        User.objects.filter(username=username).delete()
+        return Response({
+            'success': True,
+            'user': UserSerializer(instance=user).data
+        })

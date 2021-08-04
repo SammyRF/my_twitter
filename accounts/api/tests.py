@@ -6,6 +6,7 @@ BASE_URL = '/api/accounts/{}/'
 LOGIN_URL = BASE_URL.format('login')
 LOGOUT_URL = BASE_URL.format('logout')
 SIGNUP_URL = BASE_URL.format('signup')
+SIGNOFF_URL = BASE_URL.format('signoff')
 LOGIN_STATUS_URL = BASE_URL.format('login_status')
 
 class AccountsApiTests(TestCase):
@@ -116,3 +117,34 @@ class AccountsApiTests(TestCase):
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
+
+    def test_signoff(self):
+        # test sign off with 'GET'
+        response = self.client.get(SIGNOFF_URL, {
+            'username': 'guest',
+            'password': 'guest',
+        })
+        self.assertEqual(response.status_code, 405)
+
+        # sign up
+        response = self.client.post(SIGNUP_URL, {
+            'username': 'guest',
+            'password': 'guest',
+            'email': 'guest@guest.com',
+        })
+        self.assertEqual(User.objects.filter(username='guest').exists(), True)
+
+        # sign off
+        response = self.client.post(SIGNOFF_URL, {
+            'username': 'guest',
+            'password': 'guest',
+        })
+        self.assertEqual(User.objects.filter(username='guest').exists(), False)
+
+        # sign off 'admin'
+        response = self.client.post(SIGNOFF_URL, {
+            'username': 'admin',
+            'password': 'admin',
+        })
+        self.assertEqual(response.status_code, 403)
+        
