@@ -25,7 +25,7 @@ SECRET_KEY = 'ztpn*l!^r@n@u@)u+1zwy013y%93*-7-zj(qjo-%ee%4c+2ven'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost', '0.0.0.0']
 INTERNAL_IPS = ['10.0.2.2']
 
 # Application definition
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'debug_toolbar',
+    'accounts',
+    'tweets',
 ]
 
 REST_FRAMEWORK = {
