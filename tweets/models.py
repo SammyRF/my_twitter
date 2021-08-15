@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from utils.helper_functions import time_helpers
+from utils.time_helpers import TimeHelpers
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -13,7 +13,7 @@ class Tweet(models.Model):
 
     @property
     def hours_to_now(self):
-        return (time_helpers.utc_now() - self.created_at).seconds // 3600
+        return (TimeHelpers.utc_now() - self.created_at).seconds // 3600
 
     def __str__(self):
-        return f'{self.created_at} {self.user}: {self.created_at}'
+        return f'{self.created_at} {self.user}: {self.content}'

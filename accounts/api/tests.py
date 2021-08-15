@@ -1,22 +1,19 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
+from utils.test_helpers import TestHelpers
 
-BASE_URL = '/api/accounts/{}/'
-LOGIN_URL = BASE_URL.format('login')
-LOGOUT_URL = BASE_URL.format('logout')
-SIGNUP_URL = BASE_URL.format('signup')
-SIGNOFF_URL = BASE_URL.format('signoff')
-LOGIN_STATUS_URL = BASE_URL.format('login_status')
+BASE_ACCOUNTS_URL = '/api/accounts/{}/'
+LOGIN_URL = BASE_ACCOUNTS_URL.format('login')
+LOGOUT_URL = BASE_ACCOUNTS_URL.format('logout')
+SIGNUP_URL = BASE_ACCOUNTS_URL.format('signup')
+SIGNOFF_URL = BASE_ACCOUNTS_URL.format('signoff')
+LOGIN_STATUS_URL = BASE_ACCOUNTS_URL.format('login_status')
 
 class AccountsApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(
-            username='admin',
-            password='correct password',
-            email='admin@admin.com'
-        )
+        self.user = TestHelpers.create_user()
 
     def test_login(self):
         # test GET not allowed

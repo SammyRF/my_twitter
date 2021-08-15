@@ -7,10 +7,11 @@ from tweets.api.serializers import TweetSerializer, TweetCreateSerializer
 class TweetViewSet(viewsets.GenericViewSet):
     serializer_class = TweetCreateSerializer
 
-    def get_premissions(self):
+    def get_permissions(self):
         if self.action in ('list', ):
-            return [AllowAny,]
-        return [IsAuthenticated, ]
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
 
     def list(self, request):
         if not 'user_id' in request.query_params:
@@ -18,7 +19,8 @@ class TweetViewSet(viewsets.GenericViewSet):
 
         tweets = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
         serializer = TweetSerializer(tweets, many=True)
-        return Response({'tweets': serializer.data})
+        response = Response({'tweets': serializer.data})
+        return response
 
     def create(self, request, *args, **kwargs):
         serializer = TweetCreateSerializer(data=request.data, context={'request': request})
@@ -27,7 +29,7 @@ class TweetViewSet(viewsets.GenericViewSet):
                 'success': False,
                 'message': 'Please check input',
                 'errors': serializer.errors,
-            })
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         tweet = serializer.save()
-        return Response(TweetCreateSerializer(tweet).data, status=status.HTTP_201_CREATED)
+        return Response(TweetSerializer(tweet).data, status=status.HTTP_201_CREATED)
