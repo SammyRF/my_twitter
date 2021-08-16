@@ -12,7 +12,6 @@ class TweetViewSet(viewsets.GenericViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
-
     def list(self, request):
         if not 'user_id' in request.query_params:
             return Response({'message': 'missing user_id'}, status=status.HTTP_400_BAD_REQUEST)
