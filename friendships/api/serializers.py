@@ -22,7 +22,6 @@ class FriendshipForCreateSerializer(serializers.ModelSerializer):
         fields = ('from_user_id', 'to_user_id')
 
     def validate(self, attrs):
-        print(attrs)
         if attrs['from_user_id'] == attrs['to_user_id']:
             raise ValidationError({
                 'message': 'user cannot follow himself',
