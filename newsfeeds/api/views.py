@@ -12,6 +12,3 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         return Response({
             'newsfeeds': serializer.data,
         }, status=status.HTTP_200_OK)
-
-
-

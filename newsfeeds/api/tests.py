@@ -1,7 +1,7 @@
 from django.test import TestCase
-from utils.test_helpers import TestHelpers
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
+from utils.test_helpers import TestHelpers
 
 NEWSFEEDS_URL = '/api/newsfeeds/'
 TWEET_CREATE_URL = '/api/tweets/'

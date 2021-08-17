@@ -9,3 +9,4 @@ def fan_out(user, tweet):
     newsfeeds.append(NewsFeed(user=tweet.user, tweet=tweet))
     # bulk_create improved performance
     NewsFeed.objects.bulk_create(newsfeeds)
+    
