@@ -10,6 +10,11 @@ class TweetSerializer(serializers.ModelSerializer):
         model = Tweet
         fields = ('id', 'created_at', 'user', 'content')
 
+class TweetShortSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tweet
+        fields = ('content',)
 
 class TweetCreateSerializer(serializers.Serializer):
     content = serializers.CharField(min_length=5, max_length=120)

@@ -9,6 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email')
 
 
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username',)
+
+
 class SignupSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=20, min_length=5)
     password = serializers.CharField(max_length=20, min_length=5)
