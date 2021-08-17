@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+import newsfeeds.services
 from tweets.api.serializers import TweetSerializer, TweetCreateSerializer
 from tweets.models import Tweet
 
@@ -32,4 +34,5 @@ class TweetViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         tweet = serializer.save()
+        newsfeeds.services.fan_out(user=request.user, tweet=tweet)
         return Response(TweetSerializer(tweet).data, status=status.HTTP_201_CREATED)
