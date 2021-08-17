@@ -1,9 +1,9 @@
-from django.contrib.auth.models import User
 from django.contrib.auth import (
     login as django_login,
     logout as django_logout,
     authenticate as django_authenticate,
 )
+from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated

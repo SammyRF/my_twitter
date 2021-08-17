@@ -1,8 +1,9 @@
-from tweets.models import Tweet
 from rest_framework import viewsets, status
-from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from tweets.api.serializers import TweetSerializer, TweetCreateSerializer
+from tweets.models import Tweet
+
 
 class TweetViewSet(viewsets.GenericViewSet):
     serializer_class = TweetCreateSerializer

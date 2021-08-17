@@ -1,8 +1,7 @@
 from django.test import TestCase
-from friendships.models import Friendship
-from utils.test_helpers import TestHelpers
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
+from utils.test_helpers import TestHelpers
 
 BASE_FRIENDSHIPS_URL = '/api/friendships/{}'
 LIST_NO_PARAMS = BASE_FRIENDSHIPS_URL.format('')
@@ -21,7 +20,6 @@ class FriendshipsApiTests(TestCase):
 
         TestHelpers.create_friendship(self.user1, self.user2)
         TestHelpers.create_friendship(self.user1, self.user3)
-        TestHelpers.create_friendship(self.user2, self.user3)
         TestHelpers.create_friendship(self.user2, self.user1)
 
         self.anonymous_client = APIClient()
@@ -62,6 +60,19 @@ class FriendshipsApiTests(TestCase):
         response = self.anonymous_client.post(FOLLOW_URL + str(self.user1.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        # user cannot follow himself
+        response = self.user1_client.post(FOLLOW_URL + str(self.user1.id))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # normal follow case
+        response = self.user2_client.post(FOLLOW_URL + str(self.user3.id))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # follow same user again
+        response = self.user2_client.post(FOLLOW_URL + str(self.user3.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'friendship exists')
+
     def test_unfollow_api(self):
         # GET not allowed
         response = self.user1_client.get(UNFOLLOW_URL + str(self.user1.id))
@@ -70,6 +81,21 @@ class FriendshipsApiTests(TestCase):
         # authenticate is needed
         response = self.anonymous_client.post(UNFOLLOW_URL + str(self.user1.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # user cannot unfollow himself
+        response = self.user1_client.post(UNFOLLOW_URL + str(self.user1.id))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['message'], 'user cannot unfollow himself')
+
+        # normal unfollow case
+        response = self.user2_client.post(UNFOLLOW_URL + str(self.user1.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'friendship deleted')
+
+        # unfollow same user again
+        response = self.user2_client.post(UNFOLLOW_URL + str(self.user3.id))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['message'], 'friendship not found')
 
 
 

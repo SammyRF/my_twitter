@@ -1,7 +1,7 @@
-from tweets.models import Tweet
-from accounts.api.serializers import UserSerializer
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from accounts.api.serializers import UserSerializer
+from tweets.models import Tweet
+
 
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializer()

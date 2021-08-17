@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from friendships.models import Friendship
-from accounts.api.serializers import UserSerializer
 from rest_framework.validators import ValidationError
+from accounts.api.serializers import UserSerializer
+from friendships.models import Friendship
+
 
 class FriendshipSerializer(serializers.ModelSerializer):
     from_user = UserSerializer()

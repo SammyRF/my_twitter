@@ -1,10 +1,11 @@
+from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
-from django.contrib.auth.models import User
+
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
@@ -65,6 +66,18 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
     def unfollow(self, request):
         to_user_id = request.query_params.get('user_id')
+        if str(request.user.id) == to_user_id:
+            return Response({
+                'success': False,
+                'message': 'user cannot unfollow himself',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if not Friendship.objects.filter(from_user=request.user, to_user_id=to_user_id).exists():
+            return Response({
+                'success': False,
+                'message': 'friendship not found',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         Friendship.objects.filter(from_user_id=request.user.id, to_user_id=to_user_id).delete()
         return Response({
             'success': True,
