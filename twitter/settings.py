@@ -26,7 +26,7 @@ SECRET_KEY = 'ztpn*l!^r@n@u@)u+1zwy013y%93*-7-zj(qjo-%ee%4c+2ven'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost', '0.0.0.0']
-INTERNAL_IPS = ['10.0.2.2']
+INTERNAL_IPS = ['10.0.2.2', '172.17.0.1']
 
 # Application definition
 
@@ -80,6 +80,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'twitter.wsgi.application'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # Database
@@ -91,7 +92,7 @@ DATABASES = {
         'NAME': 'twitter',
         'HOST': '0.0.0.0',
         'PORT': '3306',
-        'USER': 'root',
+        'USER': 'django',
         'PASSWORD': 'yourpassword',    # 这里是自己下载mysql时候输入两次的那个密码
     }
 }
