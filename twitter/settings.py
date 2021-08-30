@@ -31,18 +31,24 @@ INTERNAL_IPS = ['10.0.2.2', '172.17.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    # django default
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # django 3rd party
     'rest_framework',
     'debug_toolbar',
+
+    # project apps
     'accounts',
     'tweets',
     'friendships',
     'newsfeeds',
+    'comments',
 ]
 
 REST_FRAMEWORK = {
