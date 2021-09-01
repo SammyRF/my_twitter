@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from utils.time_helpers import TimeHelpers
+from django.contrib.contenttypes.models import ContentType
+from likes.models import Like
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -17,3 +19,10 @@ class Tweet(models.Model):
 
     def __str__(self):
         return f'{self.created_at} {self.user}: {self.content}'
+
+    @property
+    def like_set(self):
+        return Like.objects.filter(
+            content_type=ContentType.objects.get_for_model(Tweet),
+            object_id=self.id,
+        ).order_by('-created_at')
