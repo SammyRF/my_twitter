@@ -5,7 +5,7 @@ from rest_framework.response import Response
 import newsfeeds.services
 from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate, TweetSerializerWithComments
 from tweets.models import Tweet
-from utils.decorators import required_params
+from utils.decorators import required_all_params
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -16,7 +16,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    @required_params(params=('user_id',))
+    @required_all_params(params=('user_id',))
     def list(self, request):
         if not 'user_id' in request.query_params:
             return Response({'message': 'missing user_id'}, status=status.HTTP_400_BAD_REQUEST)
