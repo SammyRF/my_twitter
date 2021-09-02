@@ -10,6 +10,7 @@ from utils.time_helpers import TimeHelpers
 BASE_TWEETS_URL = '/api/tweets/{}'
 TWEET_LIST_URL = BASE_TWEETS_URL.format('')
 TWEET_CREATE_URL = BASE_TWEETS_URL.format('')
+TWEET_RETRIEVE_URL = BASE_TWEETS_URL + '/'
 
 class TweetTests(TestCase):
 
@@ -64,3 +65,22 @@ class TweetTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['user']['id'], self.user1.id)
         self.assertEqual(Tweet.objects.count(), tweet_count + 1)
+
+    def test_retrieve_api(self):
+        # tweet with minus value not exists
+        url = TWEET_RETRIEVE_URL.format(-1)
+        response = self.anonymous_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # tweet with comment
+        tweet = TestHelpers.create_tweet(self.user1)
+        url = TWEET_RETRIEVE_URL.format(tweet.id)
+        response = self.anonymous_client.get(url)
+        print()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['comments']), 0)
+
+        comment = TestHelpers.create_comment(self.user2, tweet)
+        response = self.anonymous_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['comments']), 1)

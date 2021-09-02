@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from comments.api.permissions import IsObjectOwner
-
+from utils import decorators
 
 class CommentViewSet(viewsets.GenericViewSet):
     queryset = Comment.objects.all()
@@ -65,12 +65,8 @@ class CommentViewSet(viewsets.GenericViewSet):
             'message': 'Comment deleted'
         }, status=status.HTTP_200_OK)
 
+    @decorators.required_params(params=('tweet_id',))
     def list(self, request, *arg, **kwargs):
-        if 'tweet_id' not in request.query_params:
-            return Response({
-                'message': 'missing tweet_id in request',
-                'success': False,
-            }, status=status.HTTP_400_BAD_REQUEST)
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
         serializer = CommentSerializer(comments, many=True)

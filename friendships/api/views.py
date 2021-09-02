@@ -5,24 +5,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
+from utils.decorators import required_any_params, required_params
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
 
+    @required_any_params(params=('from_user_id', 'to_user_id'))
     def list(self, request):
-        # help function
-        no_id = lambda id: not User.objects.filter(id=id).exists()
-
-        # check id valid
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
-        if no_id(from_user_id) and no_id(to_user_id):
-            return Response({
-                'success': False,
-                'message': 'User not exists',
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         if from_user_id and to_user_id:
             friendships = Friendship.objects.filter(from_user_id=from_user_id, to_user_id=to_user_id)
         elif from_user_id:
@@ -37,6 +29,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         )
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
+    @required_params(params=('user_id',))
     def follow(self, request):
         to_user_id = request.query_params.get('user_id')
 
@@ -64,6 +57,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
+    @required_params(params=('user_id',))
     def unfollow(self, request):
         to_user_id = request.query_params.get('user_id')
         if str(request.user.id) == to_user_id:
