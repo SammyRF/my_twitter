@@ -33,9 +33,10 @@ class FriendshipsApiTests(TestCase):
         response = self.anonymous_client.get(LIST_NO_PARAMS)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # wrong user id is not allowed
+        # wrong user id return empty list
         response = self.anonymous_client.get(LIST_FROM_USER_URL + '1000')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['friendships']), 0)
 
         # POST not allowed
         response = self.anonymous_client.post(LIST_FROM_USER_URL + str(self.user1.id))

@@ -22,6 +22,6 @@ class Comment(models.Model):
     @property
     def like_set(self):
         return Like.objects.filter(
-            content_type=ContentType.objects.get_for_model(Comment),
+            content_type=ContentType.objects.get_for_model(self.__class__),
             object_id=self.id,
         ).order_by('-created_at')
