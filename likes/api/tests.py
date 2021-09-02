@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 BASE_LIKE_URL = '/api/likes/'
+CANCEL_LIKE_URL = '/api/likes/cancel/'
 
 
 class LikeApiTests(TestCase):
@@ -97,3 +98,38 @@ class LikeApiTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.comment.like_set.count(), 2)
+
+    def test_cancel(self):
+        like_comment_data = {'content_type': 'comment', 'object_id': self.comment.id}
+        like_tweet_data = {'content_type': 'tweet', 'object_id': self.tweet.id}
+        self.admin_client.post(BASE_LIKE_URL, like_comment_data)
+        self.user1_client.post(BASE_LIKE_URL, like_tweet_data)
+        self.assertEqual(self.tweet.like_set.count(), 1)
+        self.assertEqual(self.comment.like_set.count(), 1)
+
+        # ANONYMOUS is not allowed
+        response = self.anonymous_client.post(CANCEL_LIKE_URL, like_comment_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.anonymous_client.post(CANCEL_LIKE_URL, like_tweet_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 'Get' not allowed
+        response = self.user1_client.get(CANCEL_LIKE_URL, like_comment_data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        response = self.admin_client.get(CANCEL_LIKE_URL, like_tweet_data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # other user not allowed
+        response = self.user1_client.post(CANCEL_LIKE_URL, like_comment_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.admin_client.post(CANCEL_LIKE_URL, like_tweet_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # normal case
+        response = self.admin_client.post(CANCEL_LIKE_URL, like_comment_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.comment.like_set.count(), 0)
+        response = self.user1_client.post(CANCEL_LIKE_URL, like_tweet_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.tweet.like_set.count(), 0)
+

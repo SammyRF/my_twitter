@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
 from utils.decorators import required_any_params, required_all_params
+from utils import helpers
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -44,12 +45,9 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             'from_user_id': request.user.id,
             'to_user_id': to_user_id,
         })
+
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'please check input',
-                'errors': serializer.errors,
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return helpers.validation_errors_response(serializer.errors)
 
         friendship = serializer.save()
         return Response({

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from tweets.models import Tweet
 from utils.test_helpers import TestHelpers
-from utils.time_helpers import TimeHelpers
+from utils import helpers
 
 BASE_TWEETS_URL = '/api/tweets/{}'
 TWEET_LIST_URL = BASE_TWEETS_URL.format('')
@@ -26,7 +26,7 @@ class TweetTests(TestCase):
     def test_hours_to_now(self):
         user1 = User.objects.create_user(username='user1')
         tweet = Tweet.objects.create(user=user1, content="")
-        tweet.created_at = TimeHelpers.utc_now() - timedelta(hours=10)
+        tweet.created_at = helpers.utc_now() - timedelta(hours=10)
         tweet.save()
         self.assertEqual(tweet.hours_to_now, 10)
 

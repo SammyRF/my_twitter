@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from accounts.api.serializers import UserSerializer, SignupSerializer, LoginSerializer
+from utils import helpers
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -29,11 +30,8 @@ class AccountViewSet(viewsets.ViewSet):
         # check input
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Please check input.',
-                'error': serializer.errors,
-            }, status=400)
+            return helpers.validation_errors_response(serializer.errors)
+
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
 
@@ -71,11 +69,7 @@ class AccountViewSet(viewsets.ViewSet):
         # check input
         serializer = SignupSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Please check input.',
-                'error': serializer.errors,
-            }, status=400)
+            return helpers.validation_errors_response(serializer.errors)
 
         # create user
         user = serializer.save()
@@ -92,11 +86,8 @@ class AccountViewSet(viewsets.ViewSet):
         # check input
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Please check input.',
-                'error': serializer.errors,
-            }, status=400)
+            return helpers.validation_errors_response(serializer.errors)
+
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
 
