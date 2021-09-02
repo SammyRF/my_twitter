@@ -76,7 +76,6 @@ class TweetTests(TestCase):
         tweet = TestHelpers.create_tweet(self.user1)
         url = TWEET_RETRIEVE_URL.format(tweet.id)
         response = self.anonymous_client.get(url)
-        print()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['comments']), 0)
 

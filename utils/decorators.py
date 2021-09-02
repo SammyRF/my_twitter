@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from functools import wraps
 
-def required_params(params_src='query_params', params=tuple()):
+def required_all_params(params_src='query_params', params=tuple()):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(instance, request, *arg, **kwargs):
