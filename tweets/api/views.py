@@ -6,6 +6,7 @@ import newsfeeds.services
 from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate, TweetSerializerWithComments
 from tweets.models import Tweet
 from utils.decorators import required_all_params
+from utils import helpers
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -29,11 +30,7 @@ class TweetViewSet(viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         serializer = TweetSerializerForCreate(data=request.data, context={'request': request})
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'Please check input',
-                'errors': serializer.errors,
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return helpers.validation_errors_response(serializer.errors)
 
         tweet = serializer.save()
         newsfeeds.services.fan_out(user=request.user, tweet=tweet)

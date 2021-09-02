@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from comments.api.permissions import IsObjectOwner
-from utils import decorators
+from utils import decorators, helpers
 
 class CommentViewSet(viewsets.GenericViewSet):
     queryset = Comment.objects.all()
@@ -31,11 +31,7 @@ class CommentViewSet(viewsets.GenericViewSet):
 
         serializer = CommentSerializerForCreate(data=data)
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'please check input.',
-                'errors': serializer.errors,
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return helpers.validation_errors_response(serializer.errors)
 
         comment = serializer.save()
         return Response(
