@@ -1,9 +1,9 @@
+from comments.models import Comment
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from utils.test_helpers import TestHelpers
-from comments.models import Comment
-from django.utils import timezone
 
 BASE_COMMENT_URL = '/api/comments/{}'
 CREATE_COMMENT_URL = BASE_COMMENT_URL.format('')
@@ -27,7 +27,7 @@ class CommentApiTests(TestCase):
         self.tweet1 = TestHelpers.create_tweet(self.user1)
         self.tweet2 = TestHelpers.create_tweet(self.user2)
 
-    def test_create(self):
+    def test_create_api(self):
         # ANONYMOUS is not allowed
         response = self.anonymous_client.post(CREATE_COMMENT_URL)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -58,7 +58,7 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.data['tweet_id'], self.tweet1.id)
         self.assertEqual(response.data['content'], '1')
 
-    def test_destroy(self):
+    def test_destroy_api(self):
         comment = TestHelpers.create_comment(self.user1, self.tweet1, 'test comment')
         url = DELETE_COMMENT_URL.format(comment.id)
 
@@ -76,7 +76,7 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Comment.objects.count(), count - 1)
 
-    def test_update(self):
+    def test_update_api(self):
         comment = TestHelpers.create_comment(self.user1, self.tweet1, 'original')
         another_tweet = TestHelpers.create_tweet(self.user2)
         url = UPDATE_COMMENT_URL.format(comment.id)
@@ -110,7 +110,7 @@ class CommentApiTests(TestCase):
         self.assertNotEqual(comment.created_at, now)
         self.assertNotEqual(comment.updated_at, before_updated_at)
 
-    def test_list(self):
+    def test_list_api(self):
         # 'tweet_id' is required
         response = self.anonymous_client.get(LIST_COMMENT_URL)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -140,7 +140,7 @@ class CommentApiTests(TestCase):
         })
         self.assertEqual(len(response.data['comments']), 2)
 
-    def test_retrieve(self):
+    def test_retrieve_api(self):
         comment = TestHelpers.create_comment(self.user1, self.tweet1, 'test comment')
         url = RETRIEVE_COMMENT_URL.format(comment.id)
 
@@ -153,3 +153,20 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['content'], 'test comment')
 
+    def test_like(self):
+        comment = TestHelpers.create_comment(self.user1, self.tweet1, 'test comment')
+        url = RETRIEVE_COMMENT_URL.format(comment.id)
+
+        # before like
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['has_like'], False)
+        self.assertEqual(response.data['like_count'], 0)
+
+        # after like
+        TestHelpers.create_like(self.user1, comment)
+        TestHelpers.create_like(self.user2, comment)
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['has_like'], True)
+        self.assertEqual(response.data['like_count'], 2)

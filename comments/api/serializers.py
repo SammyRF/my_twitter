@@ -1,6 +1,7 @@
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
 from django.contrib.auth.models import User
+from likes.services import LikeServices
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from tweets.models import Tweet
@@ -8,10 +9,18 @@ from tweets.models import Tweet
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    has_like = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'tweet_id', 'content', 'created_at')
+        fields = ('id', 'user', 'tweet_id', 'content', 'created_at', 'has_like', 'like_count')
+
+    def get_has_like(self, obj):
+        return LikeServices.has_like(self.context['user'], obj)
+
+    def get_like_count(self, obj):
+        return obj.like_set.count()
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):

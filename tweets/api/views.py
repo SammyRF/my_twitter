@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 import newsfeeds.services
-from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate, TweetSerializerWithComments
+from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate
 from tweets.models import Tweet
 from utils.decorators import required_all_params
 from utils import helpers
@@ -23,7 +23,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             return Response({'message': 'missing user_id'}, status=status.HTTP_400_BAD_REQUEST)
 
         tweets = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
-        serializer = TweetSerializer(tweets, many=True)
+        serializer = TweetSerializer(tweets, context={'user': request.user}, many=True)
         response = Response({'tweets': serializer.data})
         return response
 
@@ -34,12 +34,12 @@ class TweetViewSet(viewsets.GenericViewSet):
 
         tweet = serializer.save()
         newsfeeds.services.fan_out(user=request.user, tweet=tweet)
-        return Response(TweetSerializer(tweet).data, status=status.HTTP_201_CREATED)
+        return Response(TweetSerializer(tweet, context={'user': request.user}).data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk):
         tweet = Tweet.objects.filter(id=pk).first()
         if tweet:
-            return Response(TweetSerializerWithComments(tweet).data, status=status.HTTP_200_OK)
+            return Response(TweetSerializer(tweet, context={'user': request.user}).data, status=status.HTTP_200_OK)
         else:
             return Response({
                 'success': False,

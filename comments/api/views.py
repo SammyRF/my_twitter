@@ -3,11 +3,11 @@ from comments.api.serializers import (
     CommentSerializer,
     CommentSerializerForUpdate
 )
+from comments.api.permissions import IsObjectOwner
 from comments.models import Comment
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from comments.api.permissions import IsObjectOwner
 from utils import decorators, helpers
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -35,7 +35,7 @@ class CommentViewSet(viewsets.GenericViewSet):
 
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'user': request.user}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -51,7 +51,7 @@ class CommentViewSet(viewsets.GenericViewSet):
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
         comment = serializer.save()
-        return Response(CommentSerializer(comment).data, status=status.HTTP_200_OK)
+        return Response(CommentSerializer(comment, context={'user': request.user}).data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *arg, **kwargs):
         comment = self.get_object()
@@ -65,7 +65,7 @@ class CommentViewSet(viewsets.GenericViewSet):
     def list(self, request, *arg, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(comments, context={'user': request.user}, many=True)
         return Response(
             {'comments': serializer.data},
             status=status.HTTP_200_OK,
@@ -74,7 +74,7 @@ class CommentViewSet(viewsets.GenericViewSet):
     def retrieve(self, request, pk):
         comment = Comment.objects.filter(id=pk).first()
         if comment:
-            return Response(CommentSerializer(comment).data, status=status.HTTP_200_OK)
+            return Response(CommentSerializer(comment, context={'user': request.user}).data, status=status.HTTP_200_OK)
         else:
             return Response({
                 'success': False,
