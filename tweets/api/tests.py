@@ -4,8 +4,8 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 from tweets.models import Tweet
-from utils.test_helpers import TestHelpers
 from utils import helpers
+from utils.test_helpers import TestHelpers
 
 BASE_TWEETS_URL = '/api/tweets/{}'
 TWEET_LIST_URL = BASE_TWEETS_URL.format('')
@@ -22,6 +22,8 @@ class TweetTests(TestCase):
         self.anonymous_client = APIClient()
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
+        self.user2_client = APIClient()
+        self.user2_client.force_authenticate(self.user2)
 
     def test_hours_to_now(self):
         user1 = User.objects.create_user(username='user1')
@@ -83,3 +85,35 @@ class TweetTests(TestCase):
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['comments']), 1)
+
+    def test_likes(self):
+        url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
+
+        # before like
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['has_like'], False)
+        self.assertEqual(response.data['like_count'], 0)
+
+        # after like
+        TestHelpers.create_like(self.user1, self.user1.tweets[0])
+        TestHelpers.create_like(self.user2, self.user1.tweets[0])
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['has_like'], True)
+        self.assertEqual(response.data['like_count'], 2)
+
+    def test_comments(self):
+        url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
+
+        # before like
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['comment_count'], 0)
+
+        # after like
+        TestHelpers.create_comment(self.user1, self.user1.tweets[0])
+        TestHelpers.create_comment(self.user2, self.user1.tweets[0])
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['comment_count'], 2)
