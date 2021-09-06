@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'debug_toolbar',
     'django_filters',
+    'notifications',
 
     # project apps
     'accounts',
@@ -144,3 +145,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+try:
+    from .local_settings import *
+except:
+    pass

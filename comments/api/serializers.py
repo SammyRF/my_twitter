@@ -1,6 +1,7 @@
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
 from django.contrib.auth.models import User
+from inbox.services import NotificationSerivce
 from likes.services import LikeServices
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -45,11 +46,13 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        return Comment.objects.create(
+        comment = Comment.objects.create(
             user_id=validated_data['user_id'],
             tweet_id=validated_data['tweet_id'],
             content=validated_data['content'],
         )
+        NotificationSerivce.send_comment_notification(comment)
+        return comment
 
 
 class CommentSerializerForUpdate(serializers.ModelSerializer):

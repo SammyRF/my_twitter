@@ -12,7 +12,7 @@ from utils import helpers
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
 
-    @required_any_params(params=('from_user_id', 'to_user_id'))
+    @required_any_params(method='GET', params=('from_user_id', 'to_user_id'))
     def list(self, request):
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
@@ -30,9 +30,9 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         )
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
-    @required_all_params(params=('user_id',))
+    @required_all_params(method='POST', params=('user_id',))
     def follow(self, request):
-        to_user_id = request.query_params.get('user_id')
+        to_user_id = request.data.get('user_id')
 
         # if friendship exists, skip
         if Friendship.objects.filter(from_user=request.user, to_user_id=to_user_id).exists():
@@ -55,9 +55,9 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
-    @required_all_params(params=('user_id',))
+    @required_all_params(method='POST', params=('user_id',))
     def unfollow(self, request):
-        to_user_id = request.query_params.get('user_id')
+        to_user_id = request.data.get('user_id')
         if str(request.user.id) == to_user_id:
             return Response({
                 'success': False,

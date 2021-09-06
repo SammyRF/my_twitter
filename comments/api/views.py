@@ -61,7 +61,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             'message': 'Comment deleted'
         }, status=status.HTTP_200_OK)
 
-    @decorators.required_all_params(params=('tweet_id',))
+    @decorators.required_all_params(method='GET', params=('tweet_id',))
     def list(self, request, *arg, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
