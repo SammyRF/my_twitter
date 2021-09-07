@@ -3,7 +3,7 @@ from comments.api.serializers import (
     CommentSerializer,
     CommentSerializerForUpdate
 )
-from comments.api.permissions import IsObjectOwner
+from utils.permissions import IsObjectOwner
 from comments.models import Comment
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
