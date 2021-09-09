@@ -153,7 +153,7 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['content'], 'test comment')
 
-    def test_like(self):
+    def test_like_api(self):
         comment = TestHelpers.create_comment(self.user1, self.tweet1, 'test comment')
         url = RETRIEVE_COMMENT_URL.format(comment.id)
 

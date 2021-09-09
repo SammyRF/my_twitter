@@ -86,7 +86,7 @@ class TweetTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['comments']), 1)
 
-    def test_likes(self):
+    def test_retrieve_likes(self):
         url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
 
         # before like
@@ -103,7 +103,7 @@ class TweetTests(TestCase):
         self.assertEqual(response.data['has_like'], True)
         self.assertEqual(response.data['like_count'], 2)
 
-    def test_comments(self):
+    def test_retrieve_comments(self):
         url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
 
         # before like
