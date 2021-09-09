@@ -9,13 +9,13 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email')
 
 
-class UserShortSerializer(serializers.ModelSerializer):
+class UserSerializerShort(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username',)
 
 
-class SignupSerializer(serializers.Serializer):
+class UserSerializerForSignup(serializers.Serializer):
     username = serializers.CharField(max_length=20, min_length=5)
     password = serializers.CharField(max_length=20, min_length=5)
     email = serializers.EmailField()
@@ -42,9 +42,11 @@ class SignupSerializer(serializers.Serializer):
         username = validated_data['username'].lower()
         password = validated_data['password']
         email = validated_data['email'].lower()
-        return User.objects.create_user(username=username, password=password, email=email)
+        user = User.objects.create_user(username=username, password=password, email=email)
+        user.profile
+        return user
 
 
-class LoginSerializer(serializers.Serializer):
+class UserSerializerForLogin(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()

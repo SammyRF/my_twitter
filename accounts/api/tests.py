@@ -1,3 +1,4 @@
+from accounts.models import UserProfile
 from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -15,7 +16,7 @@ class AccountsApiTests(TestCase):
         self.client = APIClient()
         self.user = TestHelpers.create_user()
 
-    def test_login(self):
+    def test_login_api(self):
         # test GET not allowed
         response = self.client.get(LOGIN_URL, {
             'username': self.user.username,
@@ -47,7 +48,7 @@ class AccountsApiTests(TestCase):
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
 
-    def test_logout(self):
+    def test_logout_api(self):
         # login first
         self.client.post(LOGIN_URL, {
             'username': self.user.username,
@@ -70,7 +71,7 @@ class AccountsApiTests(TestCase):
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], False)
 
-    def test_signup(self):
+    def test_signup_api(self):
         # test sign up with 'GET'
         response = self.client.get(SIGNUP_URL, {
             'username': 'guest',
@@ -110,12 +111,14 @@ class AccountsApiTests(TestCase):
             'email': 'guest@guest.com',
         })
         self.assertEqual(response.status_code, 201)
+        user_id = response.data['user']['id']
+        self.assertEqual(UserProfile.objects.filter(user=user_id).count(), 1)
 
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
 
-    def test_signoff(self):
+    def test_signoff_api(self):
         # test sign off with 'GET'
         response = self.client.get(SIGNOFF_URL, {
             'username': 'guest',

@@ -21,7 +21,7 @@ class LikeApiTests(TestCase):
         self.tweet = TestHelpers.create_tweet(self.admin)
         self.comment = TestHelpers.create_comment(self.user1, self.tweet)
 
-    def test_tweets_likes(self):
+    def test_like_tweet_api(self):
         # ANONYMOUS is not allow to like
         response = self.anonymous_client.post(
             path=BASE_LIKE_URL,
@@ -60,7 +60,7 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.tweet.like_set.count(), 2)
 
-    def test_comments_likes(self):
+    def test_like_comment_api(self):
         # ANONYMOUS is not allow to like
         response = self.anonymous_client.post(
             path=BASE_LIKE_URL,
@@ -99,7 +99,7 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.comment.like_set.count(), 2)
 
-    def test_cancel(self):
+    def test_cancel_like_api(self):
         like_comment_data = {'content_type': 'comment', 'object_id': self.comment.id}
         like_tweet_data = {'content_type': 'tweet', 'object_id': self.tweet.id}
         self.admin_client.post(BASE_LIKE_URL, like_comment_data)

@@ -8,7 +8,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from accounts.api.serializers import UserSerializer, SignupSerializer, LoginSerializer
+from accounts.api.serializers import UserSerializer, UserSerializerForSignup, UserSerializerForLogin
 from utils import helpers
 
 
@@ -22,13 +22,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AccountViewSet(viewsets.ViewSet):
-    serializer_class = SignupSerializer
+    serializer_class = UserSerializerForSignup
     permission_classes = (AllowAny, )
 
     @action(methods=['POST'], detail=False)
     def login(self, request):
         # check input
-        serializer = LoginSerializer(data=request.data)
+        serializer = UserSerializerForLogin(data=request.data)
         if not serializer.is_valid():
             return helpers.validation_errors_response(serializer.errors)
 
@@ -67,7 +67,7 @@ class AccountViewSet(viewsets.ViewSet):
     @action(methods=['POST'], detail=False)
     def signup(self, request):
         # check input
-        serializer = SignupSerializer(data=request.data)
+        serializer = UserSerializerForSignup(data=request.data)
         if not serializer.is_valid():
             return helpers.validation_errors_response(serializer.errors)
 
@@ -84,7 +84,7 @@ class AccountViewSet(viewsets.ViewSet):
     @action(methods=['POST'], detail=False)
     def signoff(self, request):
         # check input
-        serializer = LoginSerializer(data=request.data)
+        serializer = UserSerializerForLogin(data=request.data)
         if not serializer.is_valid():
             return helpers.validation_errors_response(serializer.errors)
 
