@@ -85,6 +85,9 @@ class TweetTests(TestCase):
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['comments']), 1)
+        self.assertEqual(response.data['user']['nickname'], None)
+        self.assertEqual(response.data['user']['avatar_url'], None)
+
 
     def test_retrieve_likes(self):
         url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)

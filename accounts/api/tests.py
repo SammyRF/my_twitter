@@ -1,6 +1,8 @@
 from accounts.models import UserProfile
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from rest_framework import status
 from rest_framework.test import APIClient
 from utils.test_helpers import TestHelpers
 
@@ -10,6 +12,8 @@ LOGOUT_URL = BASE_ACCOUNTS_URL.format('logout')
 SIGNUP_URL = BASE_ACCOUNTS_URL.format('signup')
 SIGNOFF_URL = BASE_ACCOUNTS_URL.format('signoff')
 LOGIN_STATUS_URL = BASE_ACCOUNTS_URL.format('login_status')
+
+USER_PROFILE_URL = '/api/profiles/{}/'
 
 class AccountsApiTests(TestCase):
     def setUp(self):
@@ -22,14 +26,14 @@ class AccountsApiTests(TestCase):
             'username': self.user.username,
             'password': 'correct password',
         })
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # test with 'wrong password'
         response = self.client.post(LOGIN_URL, {
             'username': self.user.username,
             'password': 'wrong password',
         })
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # test failed login status
         response = self.client.get(LOGIN_STATUS_URL)
@@ -40,9 +44,9 @@ class AccountsApiTests(TestCase):
             'username': self.user.username,
             'password': 'correct password',
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(response.data['user'], None)
-        self.assertEqual(response.data['user']['email'], 'admin@admin.com')
+        self.assertEqual(response.data['user']['id'], self.user.id)
 
         # test success login status
         response = self.client.get(LOGIN_STATUS_URL)
@@ -61,11 +65,11 @@ class AccountsApiTests(TestCase):
 
         # test logout with 'GET'
         response = self.client.get(LOGOUT_URL)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # test logout
         response = self.client.post(LOGOUT_URL)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
@@ -78,7 +82,7 @@ class AccountsApiTests(TestCase):
             'password': 'guest',
             'email': 'guest@guest.com',
         })
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # test wrong email
         response = self.client.post(SIGNUP_URL, {
@@ -86,7 +90,7 @@ class AccountsApiTests(TestCase):
             'password': 'guest',
             'email': 'wrong email',
         })
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # test too short password
         response = self.client.post(SIGNUP_URL, {
@@ -94,7 +98,7 @@ class AccountsApiTests(TestCase):
             'password': 'pwd',
             'email': 'guest@guest.com',
         })
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # test too long username
         response = self.client.post(SIGNUP_URL, {
@@ -102,7 +106,7 @@ class AccountsApiTests(TestCase):
             'password': 'guest',
             'email': 'guest@guest.com',
         })
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # sign up
         response = self.client.post(SIGNUP_URL, {
@@ -110,7 +114,7 @@ class AccountsApiTests(TestCase):
             'password': 'guest',
             'email': 'guest@guest.com',
         })
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user_id = response.data['user']['id']
         self.assertEqual(UserProfile.objects.filter(user=user_id).count(), 1)
 
@@ -124,7 +128,7 @@ class AccountsApiTests(TestCase):
             'username': 'guest',
             'password': 'guest',
         })
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # sign up
         response = self.client.post(SIGNUP_URL, {
@@ -146,4 +150,64 @@ class AccountsApiTests(TestCase):
             'username': 'admin',
             'password': 'admin',
         })
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class UserProfileApiTests(TestCase):
+    def setUp(self):
+        self.anonymous_client = APIClient()
+
+        self.admin = TestHelpers.create_user()
+        self.admin_client = APIClient()
+        self.admin_client.force_authenticate(self.admin)
+        self.user1 = TestHelpers.create_user('user1')
+        self.user1_client = APIClient()
+        self.user1_client.force_authenticate(self.user1)
+
+        # create profile
+        self.profile = TestHelpers.create_profile(self.admin)
+
+    def test_retieve_api(self):
+        url = USER_PROFILE_URL.format(self.profile.id)
+
+        # test anonymous not allowed
+        response = self.anonymous_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # test 'other user' not allowed
+        response = self.user1_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # normal case
+        response = self.admin_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['nickname'], 'Sam')
+
+    def test_update_api(self):
+        url = USER_PROFILE_URL.format(self.profile.id)
+
+        # test anonymous not allowed
+        response = self.anonymous_client.put(url, {'nickname': 'Xiao'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # test 'other user' not allowed
+        response = self.user1_client.put(url, {'nickname': 'Xiao'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # normal case for nickname
+        response = self.admin_client.put(url, {'nickname': 'Xiao'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['nickname'], 'Xiao')
+
+        # normal case for avatar
+        response = self.admin_client.put(url, {
+            'avatar': SimpleUploadedFile(
+                name='test_avatar.jpg',
+                content=str.encode('a fake avatar'),
+                content_type='image/jpeg',
+            )
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue('test_avatar' in response.data['avatar'])
+        self.profile.refresh_from_db()
+        self.assertIsNotNone(self.profile.avatar)
