@@ -1,9 +1,10 @@
 from datetime import timedelta
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-from tweets.models import Tweet
+from tweets.models import Tweet, TweetPhoto
 from utils import helpers
 from utils.test_helpers import TestHelpers
 
@@ -12,7 +13,7 @@ TWEET_LIST_URL = BASE_TWEETS_URL.format('')
 TWEET_CREATE_URL = BASE_TWEETS_URL.format('')
 TWEET_RETRIEVE_URL = BASE_TWEETS_URL + '/'
 
-class TweetTests(TestCase):
+class TweetApiTests(TestCase):
 
     def setUp(self):
         self.user1 = TestHelpers.create_user()
@@ -68,6 +69,44 @@ class TweetTests(TestCase):
         self.assertEqual(response.data['user']['id'], self.user1.id)
         self.assertEqual(Tweet.objects.count(), tweet_count + 1)
 
+    def test_create_with_photos_api(self):
+        # empty files allowed
+        response = self.user1_client.post(TWEET_CREATE_URL, {
+            'content': 'test content',
+            'files': [],
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # more than 9 photos not allowed
+        files = [
+            SimpleUploadedFile(
+                name=f'selfie{i}.jpg',
+                content=str.encode(f'selfie{i}'),
+                content_type='image/jpeg',
+            )
+            for i in range(10)
+        ]
+        response = self.user1_client.post(TWEET_CREATE_URL, {
+            'content': 'test content',
+            'files': files,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # normal case
+        file = SimpleUploadedFile(
+            name='selfie.jpg',
+            content=str.encode('a fake image'),
+            content_type='image/jpeg',
+        )
+        response = self.user1_client.post(TWEET_CREATE_URL, {
+            'content': 'test content',
+            'files': [file],
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(TweetPhoto.objects.all().count(), 1)
+        self.assertTrue('selfie' in response.data['photo_urls'][0])
+
+
     def test_retrieve_api(self):
         # tweet with minus value not exists
         url = TWEET_RETRIEVE_URL.format(-1)
@@ -120,3 +159,4 @@ class TweetTests(TestCase):
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['comment_count'], 2)
+
