@@ -1,9 +1,10 @@
-from django.contrib.auth.models import User
-from tweets.models import Tweet
-from friendships.models import Friendship
+from accounts.models import UserProfile
 from comments.models import Comment
-from likes.models import Like
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from friendships.models import Friendship
+from likes.models import Like
+from tweets.models import Tweet
 
 
 class TestHelpers:
@@ -35,3 +36,8 @@ class TestHelpers:
             content_type=ContentType.objects.get_for_model(target.__class__),
             object_id=target.id,
         )
+
+    @classmethod
+    def create_profile(cls, user, nickname='Sam'):
+        return UserProfile.objects.create(user=user, nickname=nickname)
+

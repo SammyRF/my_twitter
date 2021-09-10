@@ -1,4 +1,4 @@
-from accounts.api.serializers import UserSerializer
+from accounts.api.serializers import UserSerializerWithProfile
 from comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
 from inbox.services import NotificationSerivce
@@ -9,7 +9,7 @@ from tweets.models import Tweet
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializerWithProfile()
 
     class Meta:
         model = Like

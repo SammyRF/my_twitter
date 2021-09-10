@@ -1,11 +1,11 @@
-from accounts.api.serializers import UserSerializerShort
+from accounts.api.serializers import UserSerializer
 from newsfeeds.models import NewsFeed
 from rest_framework import serializers
 from tweets.api.serializers import TweetSerializer
 
 
 class NewsFeedSerializer(serializers.ModelSerializer):
-    user = UserSerializerShort()
+    user = UserSerializer()
     tweet = TweetSerializer()
 
     class Meta:
