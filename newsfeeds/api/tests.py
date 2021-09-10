@@ -6,7 +6,7 @@ from utils.test_helpers import TestHelpers
 NEWSFEEDS_URL = '/api/newsfeeds/'
 TWEET_CREATE_URL = '/api/tweets/'
 
-class NewsFeedTests(TestCase):
+class NewsFeedApiTests(TestCase):
     def setUp(self):
         self.user1 = TestHelpers.create_user()
         self.user2 = TestHelpers.create_user(username='Staff', password='Staff', email='staff@staff.com')
