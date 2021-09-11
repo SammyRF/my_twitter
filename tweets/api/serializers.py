@@ -8,7 +8,7 @@ from tweets.models import Tweet, TweetPhoto
 
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializerWithProfile()
-    has_like = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     comments = CommentSerializer(source='comment_set', many=True)
@@ -22,7 +22,7 @@ class TweetSerializer(serializers.ModelSerializer):
             'created_at',
             'user',
             'content',
-            'has_like',
+            'has_liked',
             'like_count',
             'comment_count',
             'likes',
@@ -30,8 +30,8 @@ class TweetSerializer(serializers.ModelSerializer):
             'photo_urls',
         )
 
-    def get_has_like(self, obj):
-        return LikeServices.has_like(self.context['user'], obj)
+    def get_has_liked(self, obj):
+        return LikeServices.has_liked(self.context['user'], obj)
 
     def get_like_count(self, obj):
         return obj.like_set.count()
@@ -57,7 +57,7 @@ class TweetSerializerForCreate(serializers.Serializer):
         fields = ('content', 'files')
 
     def create(self, validated_data):
-        user = self.context['request'].user
+        user = self.context['user']
         content = validated_data['content']
         tweet = Tweet.objects.create(user=user, content=content)
         if validated_data.get('files'):

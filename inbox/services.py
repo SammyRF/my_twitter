@@ -8,6 +8,7 @@ class NotificationSerivce:
     @classmethod
     def send_like_notification(cls, like):
         target = like.content_object
+        # no notification when user likes on self
         if target.user == like.user:
             return
         if like.content_type == ContentType.objects.get_for_model(Comment):
@@ -28,6 +29,7 @@ class NotificationSerivce:
     @classmethod
     def send_comment_notification(cls, comment):
         target = comment.tweet
+        # no notification when user comments on self
         if comment.user == target.user:
             return
         notify.send(

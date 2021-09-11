@@ -1,5 +1,6 @@
-from rest_framework.permissions import BasePermission
 from notifications.models import Notification
+from rest_framework.permissions import BasePermission
+
 
 class IsObjectOwner(BasePermission):
     # for action with Detail=False and Detail=True

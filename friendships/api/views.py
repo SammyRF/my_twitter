@@ -1,12 +1,11 @@
-from django.contrib.auth.models import User
+from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
+from friendships.models import Friendship
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
-from friendships.models import Friendship
-from utils.decorators import required_any_params, required_all_params
 from utils import helpers
+from utils.decorators import required_any_params, required_all_params
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -24,12 +23,11 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             friendships = Friendship.objects.filter(to_user_id=to_user_id)
 
         serializer = FriendshipSerializer(friendships, many=True)
-        return Response(
-            {'friendships': serializer.data},
-            status = status.HTTP_200_OK
-        )
+        return Response({
+            'friendships': serializer.data
+        }, status = status.HTTP_200_OK)
 
-    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
+    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated,])
     @required_all_params(method='POST', params=('user_id',))
     def follow(self, request):
         to_user_id = request.data.get('user_id')
@@ -39,7 +37,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             return Response({
                 'success': True,
                 'message': 'friendship exists',
-            })
+            }, status=status.HTTP_200_OK)
 
         serializer = FriendshipForCreateSerializer(data={
             'from_user_id': request.user.id,

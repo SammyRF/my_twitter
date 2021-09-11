@@ -18,7 +18,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'tweet_id', 'content', 'created_at', 'has_like', 'like_count')
 
     def get_has_like(self, obj):
-        return LikeServices.has_like(self.context['user'], obj)
+        return LikeServices.has_liked(self.context['user'], obj)
 
     def get_like_count(self, obj):
         return obj.like_set.count()
@@ -56,7 +56,6 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
 
 
 class CommentSerializerForUpdate(serializers.ModelSerializer):
-
     class Meta:
         model = Comment
         fields = ('content',)

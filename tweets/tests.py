@@ -1,6 +1,6 @@
 from django.test import TestCase
-from utils.test_helpers import TestHelpers
 from tweets.models import TweetPhoto
+from utils.test_helpers import TestHelpers
 
 
 class TweetPhotoTests(TestCase):

@@ -37,7 +37,7 @@ class AccountsApiTests(TestCase):
 
         # test failed login status
         response = self.client.get(LOGIN_STATUS_URL)
-        self.assertEqual(response.data['has_logged_in'], False)
+        self.assertFalse(response.data['has_logged_in'])
 
         # test with 'correct password'
         response = self.client.post(LOGIN_URL, {
@@ -45,12 +45,12 @@ class AccountsApiTests(TestCase):
             'password': 'correct password',
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(response.data['user'], None)
+        self.assertIsNotNone(response.data['user'])
         self.assertEqual(response.data['user']['id'], self.user.id)
 
         # test success login status
         response = self.client.get(LOGIN_STATUS_URL)
-        self.assertEqual(response.data['has_logged_in'], True)
+        self.assertTrue(response.data['has_logged_in'])
 
     def test_logout_api(self):
         # login first
@@ -61,7 +61,7 @@ class AccountsApiTests(TestCase):
 
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
-        self.assertEqual(response.data['has_logged_in'], True)
+        self.assertTrue(response.data['has_logged_in'])
 
         # test logout with 'GET'
         response = self.client.get(LOGOUT_URL)
@@ -73,7 +73,7 @@ class AccountsApiTests(TestCase):
 
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
-        self.assertEqual(response.data['has_logged_in'], False)
+        self.assertFalse(response.data['has_logged_in'])
 
     def test_signup_api(self):
         # test sign up with 'GET'
@@ -120,7 +120,7 @@ class AccountsApiTests(TestCase):
 
         # test login status
         response = self.client.get(LOGIN_STATUS_URL)
-        self.assertEqual(response.data['has_logged_in'], True)
+        self.assertTrue(response.data['has_logged_in'])
 
     def test_signoff_api(self):
         # test sign off with 'GET'
@@ -136,16 +136,17 @@ class AccountsApiTests(TestCase):
             'password': 'guest',
             'email': 'guest@guest.com',
         })
-        self.assertEqual(User.objects.filter(username='guest').exists(), True)
+        self.assertTrue(User.objects.filter(username='guest').exists())
 
         # sign off
         response = self.client.post(SIGNOFF_URL, {
             'username': 'guest',
             'password': 'guest',
         })
-        self.assertEqual(User.objects.filter(username='guest').exists(), False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(username='guest').exists())
 
-        # sign off 'admin'
+        # sign off 'admin' is not allowed
         response = self.client.post(SIGNOFF_URL, {
             'username': 'admin',
             'password': 'admin',

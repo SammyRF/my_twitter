@@ -1,11 +1,11 @@
 from likes.api.serializers import LikeSerializerForCreate, LikeSerializer, LikeSerializerForCancel
 from likes.models import Like
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from utils.decorators import required_all_params
-from rest_framework.decorators import action
 from utils import helpers
+from utils.decorators import required_all_params
 
 
 class LikeViewSet(viewsets.GenericViewSet):

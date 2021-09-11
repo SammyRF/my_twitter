@@ -3,11 +3,11 @@ from django.db import models
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
     avatar = models.FileField(null=True)
-    nickname = models.CharField(max_length=100, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    nickname = models.CharField(max_length=100, null=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f'{self.user}: {self.nickname}'

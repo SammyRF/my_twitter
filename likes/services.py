@@ -4,7 +4,7 @@ from likes.models import Like
 
 class LikeServices:
     @classmethod
-    def has_like(cls, user, target):
+    def has_liked(cls, user, target):
         if user.is_anonymous:
             return False
         return Like.objects.filter(

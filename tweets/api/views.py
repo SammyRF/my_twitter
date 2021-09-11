@@ -1,12 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
-import newsfeeds.services
 from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate
 from tweets.models import Tweet
-from utils.decorators import required_all_params
 from utils import helpers
+from utils.decorators import required_all_params
+import newsfeeds.services
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -19,16 +18,14 @@ class TweetViewSet(viewsets.GenericViewSet):
 
     @required_all_params(method='GET', params=('user_id',))
     def list(self, request):
-        if not 'user_id' in request.query_params:
-            return Response({'message': 'missing user_id'}, status=status.HTTP_400_BAD_REQUEST)
-
         tweets = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
         serializer = TweetSerializer(tweets, context={'user': request.user}, many=True)
-        response = Response({'tweets': serializer.data})
-        return response
+        return Response({
+            'tweets': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        serializer = TweetSerializerForCreate(data=request.data, context={'request': request})
+        serializer = TweetSerializerForCreate(data=request.data, context={'user': request.user})
         if not serializer.is_valid():
             return helpers.validation_errors_response(serializer.errors)
 

@@ -1,9 +1,9 @@
 from django.test import TestCase
+from inbox.services import NotificationSerivce
 from notifications.models import Notification
 from rest_framework import status
 from rest_framework.test import APIClient
 from utils.test_helpers import TestHelpers
-from inbox.services import NotificationSerivce
 
 CREATE_LIKE_URL = '/api/likes/'
 CREATE_COMMENT_URL = '/api/comments/'
@@ -106,7 +106,7 @@ class NotificationsServiceTests(TestCase):
         response = self.admin_client.get(MARK_ALL_AS_READ_URL)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        # after mark all as read, unread count changed to 0
+        # after mark all as read
         response = self.admin_client.post(MARK_ALL_AS_READ_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)

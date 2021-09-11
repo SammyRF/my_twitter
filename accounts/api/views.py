@@ -5,7 +5,7 @@ from django.contrib.auth import (
     authenticate as django_authenticate,
 )
 from django.contrib.auth.models import User
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (
     AllowAny,
@@ -22,7 +22,6 @@ from accounts.api.serializers import (
 )
 from utils import helpers
 from utils.permissions import IsObjectOwner
-
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,28 +53,27 @@ class AccountViewSet(viewsets.ViewSet):
             return Response({
                 'success': False,
                 'message': 'username and password does not match',
-            }, status=400)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # login
         django_login(request, user)
         return Response({
             'success': True,
             'user': UserSerializer(instance=user).data
-        })
+        }, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
     def logout(self, request):
         django_logout(request)
         return Response({
             'success': True,
-        })
+        }, status=status.HTTP_200_OK)
 
     @action(methods=['GET'], detail=False)
     def login_status(self, request):
         return Response({
             'has_logged_in': request.user.is_authenticated,
-            'ip': request.META['REMOTE_ADDR'],
-        })
+        }, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
     def signup(self, request):
@@ -92,7 +90,7 @@ class AccountViewSet(viewsets.ViewSet):
         return Response({
             'success': True,
             'user': UserSerializer(instance=user).data
-        }, status=201)
+        }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False)
     def signoff(self, request):
@@ -109,7 +107,7 @@ class AccountViewSet(viewsets.ViewSet):
             return Response({
                 'success': False,
                 'message': 'admin cannot be signed off'
-            }, status=403)
+            }, status=status.HTTP_403_FORBIDDEN)
 
         # authenticate
         user = django_authenticate(username=username, password=password)
@@ -117,7 +115,7 @@ class AccountViewSet(viewsets.ViewSet):
             return Response({
                 'success': False,
                 'message': 'username and password does not match',
-            }, status=400)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # logout
         if request.user == user:
@@ -128,7 +126,7 @@ class AccountViewSet(viewsets.ViewSet):
         return Response({
             'success': True,
             'user': UserSerializer(instance=user).data
-        })
+        }, status=status.HTTP_200_OK)
 
 
 class UserProfileViewSet(
@@ -136,7 +134,7 @@ class UserProfileViewSet(
     viewsets.mixins.RetrieveModelMixin,
     viewsets.mixins.UpdateModelMixin,
 ):
-    queryset = UserProfile
+    queryset = UserProfile.objects.all()
     permission_classes = (IsObjectOwner,)
     serializer_class = UserProfileSerializerForUpdate
 

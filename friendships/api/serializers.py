@@ -1,7 +1,7 @@
-from rest_framework import serializers
-from rest_framework.validators import ValidationError
 from accounts.api.serializers import UserSerializer
 from friendships.models import Friendship
+from rest_framework import serializers
+from rest_framework.validators import ValidationError
 
 
 class FriendshipSerializer(serializers.ModelSerializer):
@@ -22,12 +22,12 @@ class FriendshipForCreateSerializer(serializers.ModelSerializer):
         model = Friendship
         fields = ('from_user_id', 'to_user_id')
 
-    def validate(self, attrs):
-        if attrs['from_user_id'] == attrs['to_user_id']:
+    def validate(self, data):
+        if data['from_user_id'] == data['to_user_id']:
             raise ValidationError({
                 'message': 'user cannot follow himself',
             })
-        return attrs
+        return data
 
     def create(self, validated_data):
         from_user_id = validated_data['from_user_id']

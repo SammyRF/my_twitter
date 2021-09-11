@@ -13,7 +13,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ('id', 'user', 'object_id', 'created_at')
+        fields = ('id', 'user', 'content_type','object_id', 'created_at')
 
 
 class LikeSerializerForCreateAndCancel(serializers.ModelSerializer):
@@ -26,15 +26,15 @@ class LikeSerializerForCreateAndCancel(serializers.ModelSerializer):
         model = Like
         fields = ('content_type', 'object_id')
 
-    def validate(self, attrs):
-        model_class = self.choices.get(attrs['content_type'])
+    def validate(self, data):
+        model_class = self.choices.get(data['content_type'])
         if model_class is None:
             raise ValidationError({'content_type': 'content type not exists'})
 
-        liked_obj = model_class.objects.filter(id=attrs['object_id']).first()
-        if liked_obj is None:
-            raise  ValidationError({'object_id': 'object not exists'})
-        return attrs
+        target_obj = model_class.objects.filter(id=data['object_id']).first()
+        if target_obj is None:
+            raise  ValidationError({'object_id': 'target object not exists'})
+        return data
 
 class LikeSerializerForCreate(LikeSerializerForCreateAndCancel):
     def create(self, validated_data):

@@ -19,6 +19,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             'unread',
         )
 
+
 class NotificationSerializerForUpdate(serializers.ModelSerializer):
     unread = serializers.BooleanField()
 

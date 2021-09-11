@@ -4,9 +4,9 @@ from tweets.models import Tweet
 
 
 class NewsFeed(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         index_together = (('user', 'created_at'),)

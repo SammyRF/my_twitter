@@ -5,10 +5,11 @@ from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers
 
+
 class Tweet(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         index_together = (('user', 'created_at'), )

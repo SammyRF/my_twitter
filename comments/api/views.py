@@ -3,12 +3,13 @@ from comments.api.serializers import (
     CommentSerializer,
     CommentSerializerForUpdate
 )
-from utils.permissions import IsObjectOwner
 from comments.models import Comment
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from utils import decorators, helpers
+from utils.permissions import IsObjectOwner
+
 
 class CommentViewSet(viewsets.GenericViewSet):
     queryset = Comment.objects.all()
@@ -45,20 +46,20 @@ class CommentViewSet(viewsets.GenericViewSet):
             data={'content': request.data['content']},
         )
         if not serializer.is_valid():
-            return Response({
-                'success': False,
-                'message': 'please check input.',
-                'errors': serializer.errors,
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return helpers.validation_errors_response(serializer.errors)
+
         comment = serializer.save()
-        return Response(CommentSerializer(comment, context={'user': request.user}).data, status=status.HTTP_200_OK)
+        return Response(
+            CommentSerializer(comment, context={'user': request.user}).data,
+            status=status.HTTP_200_OK,
+        )
 
     def destroy(self, request, *arg, **kwargs):
         comment = self.get_object()
         comment.delete()
         return Response({
             'success': True,
-            'message': 'Comment deleted'
+            'message': 'Comment deleted.'
         }, status=status.HTTP_200_OK)
 
     @decorators.required_all_params(method='GET', params=('tweet_id',))
@@ -66,15 +67,17 @@ class CommentViewSet(viewsets.GenericViewSet):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
         serializer = CommentSerializer(comments, context={'user': request.user}, many=True)
-        return Response(
-            {'comments': serializer.data},
-            status=status.HTTP_200_OK,
-        )
+        return Response({
+            'comments': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
         comment = Comment.objects.filter(id=pk).first()
         if comment:
-            return Response(CommentSerializer(comment, context={'user': request.user}).data, status=status.HTTP_200_OK)
+            return Response(
+                CommentSerializer(comment, context={'user': request.user}).data,
+                status=status.HTTP_200_OK,
+            )
         else:
             return Response({
                 'success': False,

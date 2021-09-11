@@ -35,13 +35,13 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(len(response.data['newsfeeds']), 0)
 
         # newsfeed count of user1 is 1 after user1 post tweet
-        response = self.user1_client.post(TWEET_CREATE_URL, {'content': 'test content'})
+        self.user1_client.post(TWEET_CREATE_URL, {'content': 'test content'})
         response = self.user1_client.get(NEWSFEEDS_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['newsfeeds']), 1)
 
         # newsfeed count of user1 is 2 after user2 post tweet, because user1 follow user2
-        response = self.user2_client.post(TWEET_CREATE_URL, {'content': 'test content'})
+        self.user2_client.post(TWEET_CREATE_URL, {'content': 'test content'})
         response = self.user1_client.get(NEWSFEEDS_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['newsfeeds']), 2)

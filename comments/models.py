@@ -6,11 +6,11 @@ from tweets.models import Tweet
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         index_together = (('tweet', 'created_at'),)
