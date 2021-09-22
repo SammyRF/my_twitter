@@ -6,26 +6,30 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
 from utils.decorators import required_any_params, required_all_params
+from friendships.api.paginations import FriendshipPagination
+from django.contrib.auth.models import User
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
+    queryset = User.objects.all()
+    pagination_class = FriendshipPagination
 
-    @required_any_params(method='GET', params=('from_user_id', 'to_user_id'))
     def list(self, request):
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
         if from_user_id and to_user_id:
-            friendships = Friendship.objects.filter(from_user_id=from_user_id, to_user_id=to_user_id)
+            friendships = Friendship.objects.filter(from_user_id=from_user_id, to_user_id=to_user_id).order_by('-created_at')
         elif from_user_id:
-            friendships = Friendship.objects.filter(from_user_id=from_user_id)
+            friendships = Friendship.objects.filter(from_user_id=from_user_id).order_by('-created_at')
         elif to_user_id:
-            friendships = Friendship.objects.filter(to_user_id=to_user_id)
+            friendships = Friendship.objects.filter(to_user_id=to_user_id).order_by('-created_at')
+        else:
+            friendships = Friendship.objects.all().order_by('-created_at')
 
-        serializer = FriendshipSerializer(friendships, many=True)
-        return Response({
-            'friendships': serializer.data
-        }, status = status.HTTP_200_OK)
+        page = self.paginate_queryset(friendships)
+        serializer = FriendshipSerializer(page, context={'user': request.user}, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated,])
     @required_all_params(method='POST', params=('user_id',))
@@ -49,7 +53,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
         friendship = serializer.save()
         return Response({
-            'friendships': FriendshipSerializer(friendship).data,
+            'friendships': FriendshipSerializer(friendship, context={'user': request.user}).data,
         }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])

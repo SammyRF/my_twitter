@@ -72,6 +72,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'twitter.urls'
+USE_TZ = True
 
 TEMPLATES = [
     {
