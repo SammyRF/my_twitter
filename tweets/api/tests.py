@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from tweets.models import Tweet, TweetPhoto
 from utils import helpers
+from utils.paginations import EndlessPagination
 from utils.test_helpers import TestHelpers
 
 BASE_TWEETS_URL = '/api/tweets/{}'
@@ -18,9 +19,7 @@ class TweetApiTests(TestCase):
 
     def setUp(self):
         self.user1 = TestHelpers.create_user()
-        self.user1.tweets = [TestHelpers.create_tweet(self.user1) for _ in range(2)]
         self.user2 = TestHelpers.create_user(username='Guest', password='Guest', email='guest@guest.com')
-        self.user2.tweets = [TestHelpers.create_tweet(self.user2) for _ in range(3)]
         self.anonymous_client = APIClient()
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
@@ -35,6 +34,9 @@ class TweetApiTests(TestCase):
         self.assertEqual(tweet.hours_to_now, 10)
 
     def test_list_api(self):
+        tweet1 = TestHelpers.create_tweet(self.user1)
+        tweet2 = TestHelpers.create_tweet(self.user1)
+
         # check used_it is mandatory
         response = self.anonymous_client.get(TWEET_LIST_URL)
         self.assertEqual(response.status_code, 400)
@@ -42,9 +44,11 @@ class TweetApiTests(TestCase):
         # check normal case
         response = self.anonymous_client.get(TWEET_LIST_URL, {'user_id': self.user1.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['tweets']), 2)
-        self.assertEqual(response.data['tweets'][0]['id'], self.user1.tweets[-1].id)
-        self.assertEqual(response.data['tweets'][-1]['id'], self.user1.tweets[0].id)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # check ordering
+        self.assertEqual(response.data['results'][0]['id'], tweet2.id)
+        self.assertEqual(response.data['results'][-1]['id'], tweet1.id)
 
     def test_create_api(self):
         # test anonymous forbidden
@@ -130,7 +134,8 @@ class TweetApiTests(TestCase):
 
 
     def test_retrieve_likes(self):
-        url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
+        tweet = TestHelpers.create_tweet(self.user1)
+        url = TWEET_RETRIEVE_URL.format(tweet.id)
 
         # before like
         response = self.user1_client.get(url)
@@ -139,15 +144,16 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.data['like_count'], 0)
 
         # after like
-        TestHelpers.create_like(self.user1, self.user1.tweets[0])
-        TestHelpers.create_like(self.user2, self.user1.tweets[0])
+        TestHelpers.create_like(self.user1, tweet)
+        TestHelpers.create_like(self.user2, tweet)
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['has_liked'], True)
         self.assertEqual(response.data['like_count'], 2)
 
     def test_retrieve_comments(self):
-        url = TWEET_RETRIEVE_URL.format(self.user1.tweets[0].id)
+        tweet = TestHelpers.create_tweet(self.user1)
+        url = TWEET_RETRIEVE_URL.format(tweet.id)
 
         # before like
         response = self.user1_client.get(url)
@@ -155,9 +161,54 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.data['comment_count'], 0)
 
         # after like
-        TestHelpers.create_comment(self.user1, self.user1.tweets[0])
-        TestHelpers.create_comment(self.user2, self.user1.tweets[0])
+        TestHelpers.create_comment(self.user1, tweet)
+        TestHelpers.create_comment(self.user2, tweet)
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['comment_count'], 2)
+        self.assertEqual(response.data['comment_count'], 2)#
+
+    def test_pagination(self):
+        page_size = EndlessPagination.page_size
+
+        # create page_size * 2 tweets
+        tweets = [
+            TestHelpers.create_tweet(self.user1, content='tweet_{}'.format(i))
+            for i in range(page_size * 2)
+        ][::-1]
+
+        # pull the first page
+        response = self.user1_client.get(TWEET_LIST_URL, {'user_id': self.user1.id})
+        self.assertEqual(response.data['has_next_page'], True)
+        self.assertEqual(len(response.data['results']), page_size)
+        self.assertEqual(response.data['results'][0]['id'], tweets[0].id)
+        self.assertEqual(response.data['results'][1]['id'], tweets[1].id)
+        self.assertEqual(response.data['results'][page_size - 1]['id'], tweets[page_size - 1].id)
+
+        # pull the second page
+        response = self.user1_client.get(TWEET_LIST_URL, {
+            'created_at__lt': tweets[page_size - 1].created_at,
+            'user_id': self.user1.id,
+        })
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), page_size)
+        self.assertEqual(response.data['results'][0]['id'], tweets[page_size].id)
+        self.assertEqual(response.data['results'][1]['id'], tweets[page_size + 1].id)
+        self.assertEqual(response.data['results'][page_size - 1]['id'], tweets[2 * page_size - 1].id)
+
+        # pull latest newsfeeds
+        response = self.user1_client.get(TWEET_LIST_URL, {
+            'created_at__gt': tweets[0].created_at,
+            'user_id': self.user1.id,
+        })
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), 0)
+
+        new_tweet = TestHelpers.create_tweet(self.user1, 'a new tweet comes in')
+        response = self.user1_client.get(TWEET_LIST_URL, {
+            'created_at__gt': tweets[0].created_at,
+            'user_id': self.user1.id,
+        })
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], new_tweet.id)
 

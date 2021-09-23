@@ -5,11 +5,15 @@ from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate
 from tweets.models import Tweet
 from utils import helpers
 from utils.decorators import required_all_params
+from utils.paginations import EndlessPagination
 import newsfeeds.services
+import utils.paginations
 
 
 class TweetViewSet(viewsets.GenericViewSet):
+    queryset = Tweet.objects.all()
     serializer_class = TweetSerializerForCreate
+    pagination_class = EndlessPagination
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
@@ -19,10 +23,9 @@ class TweetViewSet(viewsets.GenericViewSet):
     @required_all_params(method='GET', params=('user_id',))
     def list(self, request):
         tweets = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
+        tweets = self.paginate_queryset(tweets)
         serializer = TweetSerializer(tweets, context={'user': request.user}, many=True)
-        return Response({
-            'tweets': serializer.data
-        }, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = TweetSerializerForCreate(data=request.data, context={'user': request.user})
