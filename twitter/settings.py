@@ -154,6 +154,23 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # setup local storage
 MEDIA_ROOT = 'media/'
 
+# https://docs.djangoproject.com/en/3.1/topics/cache/
+# use `pip install python-memcached`
+# DO NOT pip install memcache or django-memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+    },
+    'testing': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+        'KEY_PREFIX': 'testing',
+    },
+}
+
 # if running tests, use local storage instead
 TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
 if TESTING:
