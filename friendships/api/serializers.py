@@ -2,9 +2,22 @@ from accounts.api.serializers import UserSerializer
 from friendships.models import Friendship
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
+from friendships.services import FriendshipService
 
 
-class FriendshipSerializer(serializers.ModelSerializer):
+class ToUsersMixin:
+    @property
+    def to_users_of_request_user(self: serializers.ModelSerializer):
+        if self.context['user'].is_anonymous:
+            return {}
+        if hasattr(self, '_cached_to_users_of_request_user'):
+            return self._cached_to_users_of_request_user
+        to_users_of_request_user = FriendshipService.get_to_users(self.context['user'].id)
+        setattr(self, '_cached_to_users_of_request_user', to_users_of_request_user)
+        return to_users_of_request_user
+
+
+class FriendshipSerializer(serializers.ModelSerializer, ToUsersMixin):
     from_user = UserSerializer()
     to_user = UserSerializer()
     created_at = serializers.DateTimeField()
@@ -16,22 +29,10 @@ class FriendshipSerializer(serializers.ModelSerializer):
         fields = ('from_user', 'to_user', 'created_at', 'followed_from_user', 'followed_to_user')
 
     def get_followed_from_user(self, obj):
-        client_user = self.context['user']
-        if client_user.is_anonymous:
-            return False
-        return Friendship.objects.filter(
-            from_user=client_user,
-            to_user=obj.from_user,
-        ).exists()
+        return obj.from_user_id in self.to_users_of_request_user
 
     def get_followed_to_user(self, obj):
-        client_user = self.context['user']
-        if client_user.is_anonymous:
-            return False
-        return Friendship.objects.filter(
-            from_user=client_user,
-            to_user=obj.to_user,
-        ).exists()
+        return obj.to_user_id in self.to_users_of_request_user
 
 
 class FriendshipForCreateSerializer(serializers.ModelSerializer):

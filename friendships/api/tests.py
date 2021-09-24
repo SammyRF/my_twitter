@@ -16,6 +16,8 @@ UNFOLLOW_URL = BASE_FRIENDSHIPS_URL.format('unfollow/')
 class FriendshipsApiTests(TestCase):
 
     def setUp(self):
+        TestHelpers.clear_cache()
+
         self.user1 = TestHelpers.create_user()
         self.user2 = TestHelpers.create_user(username='Staff', password='Staff', email='staff@staff.com')
         self.user3 = TestHelpers.create_user(username='Guest', password='Guest', email='guest@guest.com')

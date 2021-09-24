@@ -2,12 +2,17 @@ from accounts.models import UserProfile
 from comments.models import Comment
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
 from friendships.models import Friendship
 from likes.models import Like
 from tweets.models import Tweet
 
 
 class TestHelpers:
+    @classmethod
+    def clear_cache(cls):
+        caches['testing'].clear()
+
 
     @classmethod
     def create_user(cls, username='admin', password='correct password', email='admin@admin.com'):
