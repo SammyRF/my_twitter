@@ -1,7 +1,7 @@
 import accounts.api.serializers
 from accounts.models import UserProfile
 from django.contrib.auth.models import User
-from utils.cache_helpers import USER_PATTERN, USER_PROFILE_PATTERN, project_cache
+from utils.cache_helpers import USER_PROFILE_PATTERN, project_cache
 
 
 class UserService:
