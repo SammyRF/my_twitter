@@ -5,6 +5,8 @@ from utils.test_helpers import TestHelpers
 
 class TweetPhotoTests(TestCase):
     def setUp(self):
+        TestHelpers.clear_cache()
+        
         self.admin = TestHelpers.create_user()
         self.tweet = TestHelpers.create_tweet(self.admin)
 

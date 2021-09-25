@@ -4,6 +4,9 @@ from accounts.models import UserProfile
 
 
 class UserProfileTests(TestCase):
+    def setUp(self):
+        TestHelpers.clear_cache()
+
     def test_user_profile(self):
         self.assertEqual(UserProfile.objects.all().count(), 0)
         admin = TestHelpers.create_user()

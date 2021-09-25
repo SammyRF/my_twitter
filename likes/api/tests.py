@@ -9,6 +9,8 @@ CANCEL_LIKE_URL = '/api/likes/cancel/'
 
 class LikeApiTests(TestCase):
     def setUp(self):
+        TestHelpers.clear_cache()
+
         self.anonymous_client = APIClient()
 
         self.admin = TestHelpers.create_user()
