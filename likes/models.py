@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from utils.cache_helpers import CacheHelper
 
 
 class Like(models.Model):
@@ -17,4 +18,8 @@ class Like(models.Model):
 
     def __str__(self):
         return f'{self.created_at} {self.user} likes {self.content_type} {self.id}'
+
+    @property
+    def cached_user(self):
+        return CacheHelper.get_object_through_cache(User, self.user_id)
 

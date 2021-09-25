@@ -15,6 +15,8 @@ RETRIEVE_COMMENT_URL = BASE_COMMENT_URL + '/'
 class CommentApiTests(TestCase):
 
     def setUp(self):
+        TestHelpers.clear_cache()
+
         self.user1 = TestHelpers.create_user()
         self.user2 = TestHelpers.create_user(username='Staff', password='Staff', email='staff@staff.com')
 

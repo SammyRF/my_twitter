@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from likes.models import Like
 from tweets.models import Tweet
+from utils.cache_helpers import CacheHelper
 
 
 class Comment(models.Model):
@@ -25,3 +26,7 @@ class Comment(models.Model):
             content_type=ContentType.objects.get_for_model(self.__class__),
             object_id=self.id,
         ).order_by('-created_at')
+
+    @property
+    def cached_user(self):
+        return CacheHelper.get_object_through_cache(User, self.user_id)

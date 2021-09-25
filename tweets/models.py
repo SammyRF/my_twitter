@@ -4,6 +4,7 @@ from django.db import models
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers
+from utils.cache_helpers import CacheHelper
 
 
 class Tweet(models.Model):
@@ -29,6 +30,10 @@ class Tweet(models.Model):
             object_id=self.id,
         ).order_by('-created_at')
 
+    @property
+    def cached_user(self):
+        return CacheHelper.get_object_through_cache(User, self.user_id)
+
 
 class TweetPhoto(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
@@ -51,3 +56,7 @@ class TweetPhoto(models.Model):
 
     def __str__(self):
         return f'{self.tweet_id}: {self.file}'
+
+
+models.signals.post_save.connect(helpers.invalidate_object_cache, sender=Tweet)
+models.signals.pre_delete.connect(helpers.invalidate_object_cache, sender=Tweet)

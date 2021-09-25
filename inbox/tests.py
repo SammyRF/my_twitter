@@ -8,6 +8,8 @@ from utils.test_helpers import TestHelpers
 class NotificationsServiceTests(TestCase):
 
     def setUp(self):
+        TestHelpers.clear_cache()
+
         self.admin = TestHelpers.create_user()
         self.admin_client = APIClient()
         self.admin_client.force_authenticate(self.admin)

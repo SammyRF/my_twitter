@@ -13,7 +13,7 @@ from utils.decorators import required_all_params
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
-    queryset = User.objects.all()
+    queryset = Friendship.objects.all()
     pagination_class = FriendshipPagination
 
     def list(self, request):
@@ -53,7 +53,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             return helpers.validation_errors_response(serializer.errors)
 
         friendship = serializer.save()
-        FriendshipService.invalidate_to_users_cache(request.user.id)
         return Response({
             'friendships': FriendshipSerializer(friendship, context={'user': request.user}).data,
         }, status=status.HTTP_201_CREATED)
@@ -75,7 +74,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         Friendship.objects.filter(from_user_id=request.user.id, to_user_id=to_user_id).delete()
-        FriendshipService.invalidate_to_users_cache(request.user.id)
         return Response({
             'success': True,
             'message': 'friendship deleted'

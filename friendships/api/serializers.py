@@ -1,4 +1,4 @@
-from accounts.api.serializers import UserSerializer
+from accounts.api.serializers import UserSerializer, UserSerializerWithProfile
 from friendships.models import Friendship
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
@@ -18,8 +18,8 @@ class ToUsersMixin:
 
 
 class FriendshipSerializer(serializers.ModelSerializer, ToUsersMixin):
-    from_user = UserSerializer()
-    to_user = UserSerializer()
+    from_user = UserSerializerWithProfile(source='cached_from_user')
+    to_user = UserSerializerWithProfile(source='cached_to_user')
     created_at = serializers.DateTimeField()
     followed_from_user = serializers.SerializerMethodField()
     followed_to_user = serializers.SerializerMethodField()

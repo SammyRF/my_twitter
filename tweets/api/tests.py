@@ -18,6 +18,8 @@ TWEET_RETRIEVE_URL = BASE_TWEETS_URL + '/'
 class TweetApiTests(TestCase):
 
     def setUp(self):
+        TestHelpers.clear_cache()
+
         self.user1 = TestHelpers.create_user()
         self.user2 = TestHelpers.create_user(username='Guest', password='Guest', email='guest@guest.com')
         self.anonymous_client = APIClient()

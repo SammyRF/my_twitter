@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from utils.cache_helpers import CacheHelper
 
 class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -13,3 +14,19 @@ class Friendship(models.Model):
 
     def __str__(self):
         return f'{self.from_user.id} follows {self.to_user.id}'
+
+    @property
+    def cached_from_user(self):
+        return CacheHelper.get_object_through_cache(User, self.from_user_id)
+
+    @property
+    def cached_to_user(self):
+        return CacheHelper.get_object_through_cache(User, self.to_user_id)
+
+
+def on_friendship_changed(sender, instance, **kwargs):
+    from friendships.services import FriendshipService
+    FriendshipService.invalidate_to_users_cache(instance.from_user_id)
+
+models.signals.pre_delete.connect(on_friendship_changed, sender=Friendship)
+models.signals.post_save.connect(on_friendship_changed, sender=Friendship)

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from tweets.models import Tweet
+from utils.cache_helpers import CacheHelper
 
 
 class NewsFeed(models.Model):
@@ -15,3 +16,7 @@ class NewsFeed(models.Model):
 
     def __str__(self):
         return f'{self.created_at} {self.user}: {self.tweet}'
+
+    @property
+    def cached_tweet(self):
+        return CacheHelper.get_object_through_cache(Tweet, self.tweet_id)

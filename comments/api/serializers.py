@@ -9,7 +9,7 @@ from tweets.models import Tweet
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializerWithProfile()
+    user = UserSerializerWithProfile(source='cached_user')
     has_like = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
 

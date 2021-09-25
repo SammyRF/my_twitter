@@ -7,7 +7,7 @@ from tweets.models import Tweet, TweetPhoto
 
 
 class TweetSerializer(serializers.ModelSerializer):
-    user = UserSerializerWithProfile()
+    user = UserSerializerWithProfile(source='cached_user')
     has_liked = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
