@@ -1,8 +1,9 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-from utils.test_helpers import TestHelpers
+from tweets.models import Tweet
 from utils.paginations import EndlessPagination
+from utils.test_helpers import TestHelpers
 
 NEWSFEEDS_URL = '/api/newsfeeds/'
 TWEET_CREATE_URL = '/api/tweets/'
@@ -95,3 +96,47 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(response.data['has_next_page'], False)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['tweet']['content'], 'new tweet')
+
+    def test_user_cache(self):
+        profile = self.user1.profile
+        profile.nickname = 'Sam'
+        profile.save()
+        self.user1_client.post(TWEET_CREATE_URL, {'content': 'test content'})
+        response = self.user1_client.get(NEWSFEEDS_URL)
+
+        results = response.data['results']
+        self.assertEqual(results[0]['tweet']['user']['username'], 'admin')
+        self.assertEqual(results[0]['tweet']['user']['nickname'], 'Sam')
+
+        self.user1.username = 'new admin'
+        self.user1.save()
+        profile.nickname = 'new Sam'
+        profile.save()
+
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['tweet']['user']['username'], 'new admin')
+        self.assertEqual(results[0]['tweet']['user']['nickname'], 'new Sam')
+
+    def test_tweet_cache(self):
+        self.user1_client.post(TWEET_CREATE_URL, {'content': 'test content'})
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['tweet']['user']['username'], 'admin')
+        self.assertEqual(results[0]['tweet']['content'], 'test content')
+        tweet_id = results[0]['tweet']['id']
+
+        # update username
+        self.user1.username = 'new admin'
+        self.user1.save()
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['tweet']['user']['username'], 'new admin')
+
+        # update content
+        tweet = Tweet.objects.get(id=tweet_id)
+        tweet.content = 'new content'
+        tweet.save()
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        results = response.data['results']
+        self.assertEqual(results[0]['tweet']['content'], 'new content')

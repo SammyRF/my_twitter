@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
-from utils import helpers
+from utils import helpers, signal_helpers
 from utils.cache_helpers import CacheHelper
 
 
@@ -57,6 +57,4 @@ class TweetPhoto(models.Model):
     def __str__(self):
         return f'{self.tweet_id}: {self.file}'
 
-
-models.signals.post_save.connect(helpers.invalidate_object_cache, sender=Tweet)
-models.signals.pre_delete.connect(helpers.invalidate_object_cache, sender=Tweet)
+signal_helpers.register_model_changed(Tweet)
