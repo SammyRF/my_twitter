@@ -1,4 +1,5 @@
 from dateutil import parser
+from django.conf import settings
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 
@@ -29,12 +30,21 @@ class EndlessPagination(BasePagination):
         self.has_next_page = len(objects) > idx + self.page_size
         return objects[idx : idx + self.page_size]
 
-    def paginate_queryset(self, queryset, request, view=None):
-        # redis hit case, it returns list.
-        if type(queryset) == list:
-            return self._pagination_ordered_list(request, queryset)
+    def paginate_cached_list(self, request, cached_list):
+        paginated_list = self._pagination_ordered_list(request, cached_list)
+        # if page-up, this will anyway get the newest list
+        if 'created_at__gt' in request.query_params:
+            return paginated_list
+        # if has_next_page, this means this page is fulfill this request
+        if self.has_next_page:
+            return paginated_list
+        # if cache list not fully loaded, means all objects are loaded from DB anyway.
+        if len(cached_list) < settings.REDIS_LIST_LENGTH_LIMIT:
+            return paginated_list
+        # otherwise, cached list is not fulfill the page, need to reload from DB
+        return None
 
-        # Otherwise go to DB with queryset
+    def paginate_queryset(self, queryset, request, view=None):
         if 'created_at__gt' in request.query_params:
             created_at__gt = request.query_params['created_at__gt']
             queryset = queryset.filter(created_at__gt=created_at__gt)

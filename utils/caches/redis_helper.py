@@ -19,7 +19,7 @@ class RedisHelper:
 
         # when not hit, load objects into redis
         objects = list(queryset)
-        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in objects]
+        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in objects[:settings.REDIS_LIST_LENGTH_LIMIT]]
         if serialized_list:
             conn.rpush(key, *serialized_list)
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
@@ -33,6 +33,7 @@ class RedisHelper:
         if conn.exists(key):
             serialized_obj = DjangoModelSerializer.serialize(obj)
             conn.lpush(key, serialized_obj)
+            conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
             return
 
         # if not hit, load from DB

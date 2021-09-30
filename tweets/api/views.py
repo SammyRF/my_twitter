@@ -23,13 +23,15 @@ class TweetViewSet(viewsets.GenericViewSet):
 
     @required_all_params(method='GET', params=('user_id',))
     def list(self, request):
-        # DB direct version
-        # tweets = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
-
-        # Redis version
-        tweets = TweetService.get_cached_tweets(request.query_params['user_id'])
-        tweets = self.paginate_queryset(tweets)
-        serializer = TweetSerializer(tweets, context={'user': request.user}, many=True)
+        # get cached tweets from redis first, even cache hit not means the cached tweets fulfill the page.
+        # reason is we introduce the list size limit in redis. In such case it return None and go DB search again.
+        # The cached objects will be kept no change, because it always cached objects from newest.
+        cached_tweets = TweetService.get_cached_tweets(request.query_params['user_id'])
+        page = self.paginator.paginate_cached_list(request, cached_tweets)
+        if page is None:
+            queryset = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')
+            page = self.paginate_queryset(queryset)
+        serializer = TweetSerializer(page, context={'user': request.user}, many=True)
         return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
