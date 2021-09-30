@@ -20,3 +20,13 @@ class NewsFeed(models.Model):
     @property
     def cached_tweet(self):
         return MemcachedHelper.get_object_through_cache(Tweet, self.tweet_id)
+
+
+def extend_newsfeed_in_redis(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    from newsfeeds.services import NewsFeedService
+    NewsFeedService.extend_cached_newsfeed(instance)
+
+models.signals.post_save.connect(extend_newsfeed_in_redis, sender=NewsFeed)
