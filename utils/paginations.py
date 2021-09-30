@@ -1,3 +1,4 @@
+from dateutil import parser
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 
@@ -12,7 +13,28 @@ class EndlessPagination(BasePagination):
     def to_html(self):
         pass
 
+    def _pagination_ordered_list(self, request, objects):
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            self.has_next_page = False
+            return [obj for obj in objects if obj.created_at > created_at__gt]
+
+        idx = 0
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            for idx, obj in enumerate(objects):
+                if obj.created_at < created_at__lt:
+                    break
+
+        self.has_next_page = len(objects) > idx + self.page_size
+        return objects[idx : idx + self.page_size]
+
     def paginate_queryset(self, queryset, request, view=None):
+        # redis hit case, it returns list.
+        if type(queryset) == list:
+            return self._pagination_ordered_list(request, queryset)
+
+        # Otherwise go to DB with queryset
         if 'created_at__gt' in request.query_params:
             created_at__gt = request.query_params['created_at__gt']
             queryset = queryset.filter(created_at__gt=created_at__gt)

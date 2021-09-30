@@ -2,8 +2,8 @@ from django.db import models
 
 
 def invalidate_object_cache(sender, instance, **kwargs):
-    from utils.caches.cache_helpers import CacheHelper
-    CacheHelper.invalidate_cached_object(sender, instance.id)
+    from utils.caches.memcached_helper import MemcachedHelper
+    MemcachedHelper.invalidate_cached_object(sender, instance.id)
 
 
 def register_model_changed(model_class, invalidate_func=invalidate_object_cache):

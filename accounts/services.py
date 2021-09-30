@@ -1,5 +1,5 @@
 from accounts.models import UserProfile
-from utils.caches.cache_helpers import USER_PROFILE_PATTERN, project_cache
+from utils.caches.memcached_helper import USER_PROFILE_PATTERN, project_cache
 
 
 class UserService:

@@ -4,7 +4,7 @@ from django.db import models
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers, signal_helpers
-from utils.caches.cache_helpers import CacheHelper
+from utils.caches.memcached_helper import MemcachedHelper
 
 
 class Tweet(models.Model):
@@ -32,7 +32,7 @@ class Tweet(models.Model):
 
     @property
     def cached_user(self):
-        return CacheHelper.get_object_through_cache(User, self.user_id)
+        return MemcachedHelper.get_object_through_cache(User, self.user_id)
 
 
 class TweetPhoto(models.Model):
@@ -57,4 +57,13 @@ class TweetPhoto(models.Model):
     def __str__(self):
         return f'{self.tweet_id}: {self.file}'
 
+
+def push_tweet_to_cache(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    from tweets.services import TweetService
+    TweetService.extend_cached_tweet(instance)
+
 signal_helpers.register_model_changed(Tweet)
+models.signals.post_save.connect(push_tweet_to_cache, sender=Tweet)

@@ -6,11 +6,13 @@ from django.core.cache import caches
 from friendships.models import Friendship
 from likes.models import Like
 from tweets.models import Tweet
+from utils.caches.redis_client import RedisClient
 
 
 class TestHelpers:
     @classmethod
     def clear_cache(cls):
+        RedisClient.clear()
         caches['testing'].clear()
 
 
