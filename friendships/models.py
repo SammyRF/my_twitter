@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from utils.caches.cache_helpers import CacheHelper
+from utils.caches.memcached_helper import MemcachedHelper
 
 class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -17,11 +17,11 @@ class Friendship(models.Model):
 
     @property
     def cached_from_user(self):
-        return CacheHelper.get_object_through_cache(User, self.from_user_id)
+        return MemcachedHelper.get_object_through_cache(User, self.from_user_id)
 
     @property
     def cached_to_user(self):
-        return CacheHelper.get_object_through_cache(User, self.to_user_id)
+        return MemcachedHelper.get_object_through_cache(User, self.to_user_id)
 
 
 def on_friendship_changed(sender, instance, **kwargs):

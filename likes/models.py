@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from utils.caches.cache_helpers import CacheHelper
+from utils.caches.memcached_helper import MemcachedHelper
 
 
 class Like(models.Model):
@@ -21,5 +21,5 @@ class Like(models.Model):
 
     @property
     def cached_user(self):
-        return CacheHelper.get_object_through_cache(User, self.user_id)
+        return MemcachedHelper.get_object_through_cache(User, self.user_id)
 

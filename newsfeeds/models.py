@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from tweets.models import Tweet
-from utils.caches.cache_helpers import CacheHelper
+from utils.caches.memcached_helper import MemcachedHelper
 
 
 class NewsFeed(models.Model):
@@ -19,4 +19,4 @@ class NewsFeed(models.Model):
 
     @property
     def cached_tweet(self):
-        return CacheHelper.get_object_through_cache(Tweet, self.tweet_id)
+        return MemcachedHelper.get_object_through_cache(Tweet, self.tweet_id)
