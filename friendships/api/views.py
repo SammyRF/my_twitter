@@ -1,8 +1,6 @@
-from django.contrib.auth.models import User
 from friendships.api.paginations import FriendshipPagination
 from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
-from friendships.services import FriendshipService
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
