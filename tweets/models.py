@@ -4,7 +4,7 @@ from django.db import models
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers, signal_helpers
-from utils.cache_helpers import CacheHelper
+from utils.caches.cache_helpers import CacheHelper
 
 
 class Tweet(models.Model):

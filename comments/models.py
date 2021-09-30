@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from likes.models import Like
 from tweets.models import Tweet
-from utils.cache_helpers import CacheHelper
+from utils.caches.cache_helpers import CacheHelper
 
 
 class Comment(models.Model):

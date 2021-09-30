@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from tweets.models import Tweet
-from utils.cache_helpers import CacheHelper
+from utils.caches.cache_helpers import CacheHelper
 
 
 class NewsFeed(models.Model):

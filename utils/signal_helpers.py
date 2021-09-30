@@ -2,7 +2,7 @@ from django.db import models
 
 
 def invalidate_object_cache(sender, instance, **kwargs):
-    from utils.cache_helpers import CacheHelper
+    from utils.caches.cache_helpers import CacheHelper
     CacheHelper.invalidate_cached_object(sender, instance.id)
 
 

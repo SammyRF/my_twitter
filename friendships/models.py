@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from utils.cache_helpers import CacheHelper
+from utils.caches.cache_helpers import CacheHelper
 
 class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
