@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from utils.cache_helpers import CacheHelper
+from utils.caches.cache_helpers import CacheHelper
 
 
 class Like(models.Model):

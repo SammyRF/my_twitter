@@ -1,6 +1,5 @@
 from friendships.models import Friendship
-from utils.cache_helpers import TO_USERS_PATTERN, project_cache
-from django.core.cache import caches
+from utils.caches.cache_helpers import TO_USERS_PATTERN, project_cache
 
 
 class FriendshipService:

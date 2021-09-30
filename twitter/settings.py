@@ -154,8 +154,14 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # setup local storage
 MEDIA_ROOT = 'media/'
 
+# if running tests, use local storage instead
+TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
+if TESTING:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 # https://docs.djangoproject.com/en/3.1/topics/cache/
-# use `pip install python-memcached`
+# sudo apt-get install memcached
+# use pip install python-memcached
 # DO NOT pip install memcache or django-memcached
 CACHES = {
     'default': {
@@ -171,10 +177,13 @@ CACHES = {
     },
 }
 
-# if running tests, use local storage instead
-TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
-if TESTING:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# Redis
+# sudo apt-get install redis
+# pip install redis
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6379
+REDIS_DB = 0 if TESTING else 1
+REDIS_KEY_EXPIRE_TIME = 7 * 86400  # in seconds
 
 # S3 config
 AWS_STORAGE_BUCKET_NAME = '42-twitter'
