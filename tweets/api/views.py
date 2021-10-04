@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate
+from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate, TweetSerializerForDetails
 from tweets.models import Tweet
 from tweets.services import TweetService
 from utils import helpers
@@ -46,7 +46,7 @@ class TweetViewSet(viewsets.GenericViewSet):
     def retrieve(self, request, pk):
         tweet = Tweet.objects.filter(id=pk).first()
         if tweet:
-            return Response(TweetSerializer(tweet, context={'user': request.user}).data, status=status.HTTP_200_OK)
+            return Response(TweetSerializerForDetails(tweet, context={'user': request.user}).data, status=status.HTTP_200_OK)
         else:
             return Response({
                 'success': False,

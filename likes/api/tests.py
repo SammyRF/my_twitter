@@ -135,3 +135,31 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.tweet.like_set.count(), 0)
 
+    def test_likes_count_with_cache(self):
+        tweet_url = '/api/tweets/{}/'.format(self.tweet.id)
+        response = self.admin_client.get(tweet_url)
+        self.assertEqual(self.tweet.likes_count, 0)
+        self.assertEqual(response.data['likes_count'], 0)
+
+        data = {'object_id': self.tweet.id, 'content_type': 'tweet'}
+        # first like
+        self.admin_client.post(BASE_LIKE_URL, data)
+        response = self.admin_client.get(tweet_url)
+        self.assertEqual(response.data['likes_count'], 1)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.likes_count, 1)
+
+        # second like
+        self.user1_client.post(BASE_LIKE_URL, data)
+        response = self.admin_client.get(tweet_url)
+        self.assertEqual(response.data['likes_count'], 2)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.likes_count, 2)
+
+        # cancel second like
+        response = self.user1_client.post(CANCEL_LIKE_URL, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.admin_client.get(tweet_url)
+        self.assertEqual(response.data['likes_count'], 1)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.likes_count, 1)

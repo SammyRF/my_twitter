@@ -42,5 +42,42 @@ class RedisHelper:
             conn.rpush(key, *serialized_list)
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
 
+    @classmethod
+    def get_count_key(cls, obj, attr):
+        return f'{obj.__class__.__name__}.{attr}:{obj.id}'
+
+    @classmethod
+    def incr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+            return getattr(obj, attr)
+        return conn.incr(key)
+
+    @classmethod
+    def decr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+            return getattr(obj, attr)
+        return conn.decr(key)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+            return getattr(obj, attr)
+        return int(conn.get(key))
+
 
 

@@ -143,7 +143,7 @@ class TweetApiTests(TestCase):
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['has_liked'], False)
-        self.assertEqual(response.data['like_count'], 0)
+        self.assertEqual(response.data['likes_count'], 0)
 
         # after like
         TestHelpers.create_like(self.user1, tweet)
@@ -151,7 +151,7 @@ class TweetApiTests(TestCase):
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['has_liked'], True)
-        self.assertEqual(response.data['like_count'], 2)
+        self.assertEqual(response.data['likes_count'], 2)
 
     def test_retrieve_comments(self):
         tweet = TestHelpers.create_tweet(self.user1)
@@ -160,14 +160,14 @@ class TweetApiTests(TestCase):
         # before like
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['comment_count'], 0)
+        self.assertEqual(response.data['comments_count'], 0)
 
         # after like
         TestHelpers.create_comment(self.user1, tweet)
         TestHelpers.create_comment(self.user2, tweet)
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['comment_count'], 2)#
+        self.assertEqual(response.data['comments_count'], 2)#
 
     def test_pagination(self):
         page_size = EndlessPagination.page_size
