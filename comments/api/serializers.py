@@ -11,16 +11,16 @@ from tweets.models import Tweet
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializerWithProfile(source='cached_user')
     has_like = serializers.SerializerMethodField()
-    like_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'tweet_id', 'content', 'created_at', 'has_like', 'like_count')
+        fields = ('id', 'user', 'tweet_id', 'content', 'created_at', 'has_like', 'likes_count')
 
     def get_has_like(self, obj):
         return LikeServices.has_liked(self.context['user'], obj)
 
-    def get_like_count(self, obj):
+    def get_likes_count(self, obj):
         return obj.like_set.count()
 
 

@@ -2,9 +2,12 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.signals import pre_delete, post_save
 from utils.caches.memcached_helper import MemcachedHelper
+from utils.caches.redis_helper import RedisHelper
 
 
+# models
 class Like(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
@@ -23,3 +26,38 @@ class Like(models.Model):
     def cached_user(self):
         return MemcachedHelper.get_object_through_cache(User, self.user_id)
 
+
+# listeners
+def incr_likes_count(sender, instance, created, **kwargs):
+    from tweets.models import Tweet
+    from comments.models import Comment
+    from django.db.models import F
+
+    if not created:
+        return
+
+    if isinstance(instance.content_object, Tweet):
+        Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
+        RedisHelper.incr_count(instance.content_object, 'likes_count')
+
+    if isinstance(instance.content_object, Comment):
+        Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
+        RedisHelper.incr_count(instance.content_object, 'likes_count')
+
+def decr_likes_count(sender, instance, **kwargs):
+    from tweets.models import Tweet
+    from comments.models import Comment
+    from django.db.models import F
+
+    if isinstance(instance.content_object, Tweet):
+        Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
+        RedisHelper.decr_count(instance.content_object, 'likes_count')
+
+    if isinstance(instance.content_object, Comment):
+        Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
+        RedisHelper.decr_count(instance.content_object, 'likes_count')
+
+
+# redis
+pre_delete.connect(decr_likes_count, sender=Like)
+post_save.connect(incr_likes_count, sender=Like)

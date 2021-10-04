@@ -1,17 +1,20 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.signals import pre_delete, post_save
 from likes.models import Like
 from tweets.models import Tweet
 from utils.caches.memcached_helper import MemcachedHelper
+from utils.caches.redis_helper import RedisHelper
 
-
+# models
 class Comment(models.Model):
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    likes_count = models.IntegerField(default=0, null=True)
 
     class Meta:
         index_together = (('tweet', 'created_at'),)
@@ -30,3 +33,25 @@ class Comment(models.Model):
     @property
     def cached_user(self):
         return MemcachedHelper.get_object_through_cache(User, self.user_id)
+
+# listeners
+def incr_comments_count(sender, instance, created, **kwargs):
+    from tweets.models import Tweet
+    from django.db.models import F
+
+    if not created:
+        return
+
+    Tweet.objects.filter(id=instance.tweet_id).update(comments_count=F('comments_count') + 1)
+    RedisHelper.incr_count(instance.tweet, 'comments_count')
+
+def decr_comments_count(sender, instance, **kwargs):
+    from tweets.models import Tweet
+    from django.db.models import F
+
+    Tweet.objects.filter(id=instance.tweet_id).update(comments_count=F('comments_count') - 1)
+    RedisHelper.decr_count(instance.tweet, 'comments_count')
+
+# redis
+pre_delete.connect(decr_comments_count, sender=Comment)
+post_save.connect(incr_comments_count, sender=Comment)

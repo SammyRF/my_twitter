@@ -4,15 +4,14 @@ from likes.api.serializers import LikeSerializer
 from likes.services import LikeServices
 from rest_framework import serializers
 from tweets.models import Tweet, TweetPhoto
+from utils.caches.redis_helper import RedisHelper
 
 
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializerWithProfile(source='cached_user')
     has_liked = serializers.SerializerMethodField()
-    like_count = serializers.SerializerMethodField()
-    comment_count = serializers.SerializerMethodField()
-    comments = CommentSerializer(source='comment_set', many=True)
-    likes = LikeSerializer(source='like_set', many=True)
+    likes_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
     photo_urls = serializers.SerializerMethodField()
 
     class Meta:
@@ -23,8 +22,38 @@ class TweetSerializer(serializers.ModelSerializer):
             'user',
             'content',
             'has_liked',
-            'like_count',
-            'comment_count',
+            'likes_count',
+            'comments_count',
+            'photo_urls',
+        )
+
+    def get_has_liked(self, obj):
+        return LikeServices.has_liked(self.context['user'], obj)
+
+    def get_likes_count(self, obj):
+        return RedisHelper.get_count(obj, 'likes_count')
+
+    def get_comments_count(self, obj):
+        return RedisHelper.get_count(obj, 'comments_count')
+
+    def get_photo_urls(self, obj):
+        return [photo.file.url for photo in obj.tweetphoto_set.all().order_by('order')]
+
+
+class TweetSerializerForDetails(TweetSerializer):
+    comments = CommentSerializer(source='comment_set', many=True)
+    likes = LikeSerializer(source='like_set', many=True)
+
+    class Meta:
+        model = Tweet
+        fields = (
+            'id',
+            'created_at',
+            'user',
+            'content',
+            'has_liked',
+            'likes_count',
+            'comments_count',
             'likes',
             'comments',
             'photo_urls',
@@ -33,11 +62,11 @@ class TweetSerializer(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         return LikeServices.has_liked(self.context['user'], obj)
 
-    def get_like_count(self, obj):
-        return obj.like_set.count()
+    def get_likes_count(self, obj):
+        return RedisHelper.get_count(obj, 'likes_count')
 
-    def get_comment_count(self, obj):
-        return obj.comment_set.count()
+    def get_comments_count(self, obj):
+        return RedisHelper.get_count(obj, 'comments_count')
 
     def get_photo_urls(self, obj):
         return [photo.file.url for photo in obj.tweetphoto_set.all().order_by('order')]

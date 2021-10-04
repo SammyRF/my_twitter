@@ -163,7 +163,7 @@ class CommentApiTests(TestCase):
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['has_like'], False)
-        self.assertEqual(response.data['like_count'], 0)
+        self.assertEqual(response.data['likes_count'], 0)
 
         # after like
         TestHelpers.create_like(self.user1, comment)
@@ -171,4 +171,44 @@ class CommentApiTests(TestCase):
         response = self.user1_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['has_like'], True)
-        self.assertEqual(response.data['like_count'], 2)
+        self.assertEqual(response.data['likes_count'], 2)
+
+    def test_comments_count_with_cache(self):
+        tweet_url = '/api/tweets/{}/'.format(self.tweet1.id)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(self.tweet1.comments_count, 0)
+        self.assertEqual(response.data['comments_count'], 0)
+
+        # first comment
+        data = {'tweet_id': self.tweet1.id, 'content': 'user1 comment'}
+        self.user1_client.post(CREATE_COMMENT_URL, data)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.data['comments_count'], 1)
+        self.tweet1.refresh_from_db()
+        self.assertEqual(self.tweet1.comments_count, 1)
+
+        # second comment
+        data = {'tweet_id': self.tweet1.id, 'content': 'user2 comment'}
+        comment_response = self.user2_client.post(CREATE_COMMENT_URL, data)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.data['comments_count'], 2)
+        self.tweet1.refresh_from_db()
+        self.assertEqual(self.tweet1.comments_count, 2)
+
+        # update comment should not change comments count
+        comment_id = comment_response.data['id']
+        response = self.user2_client.put(UPDATE_COMMENT_URL.format(comment_id), {'content': 'changed comment'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.data['comments_count'], 2)
+        self.tweet1.refresh_from_db()
+        self.assertEqual(self.tweet1.comments_count, 2)
+
+        # delete second comment
+        comment_id = comment_response.data['id']
+        response = self.user2_client.delete(DELETE_COMMENT_URL.format(comment_id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.data['comments_count'], 1)
+        self.tweet1.refresh_from_db()
+        self.assertEqual(self.tweet1.comments_count, 1)
