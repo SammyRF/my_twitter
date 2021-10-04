@@ -1,25 +1,16 @@
 from friendships.models import Friendship
 from newsfeeds.models import NewsFeed
 from utils.caches.redis_helper import RedisHelper, USER_NEWSFEEDS_PATTERN
+from newsfeeds.tasks import fan_out_main_task
 
 
-def fan_out(user, tweet):
-    # prefetch improved performance
-    friendships = Friendship.objects.filter(to_user=user).prefetch_related('from_user')
-    newsfeeds = [NewsFeed(user=friendship.from_user, tweet=tweet) for friendship in friendships]
-
-    # add user self
-    newsfeeds.append(NewsFeed(user=tweet.user, tweet=tweet))
-
-    # bulk_create improved performance
-    NewsFeed.objects.bulk_create(newsfeeds)
-
-    # bulk_create will not trigger post_save, need to put to redis manually
-    for newsfeed in newsfeeds:
-        NewsFeedService.extend_cached_newsfeed(newsfeed)
 
 
 class NewsFeedService:
+
+    @classmethod
+    def fan_out(cls, tweet):
+        fan_out_main_task.delay(tweet.id, tweet.user_id)
 
     @classmethod
     def get_cached_newsfeeds(cls, user_id):

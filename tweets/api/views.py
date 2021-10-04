@@ -1,3 +1,4 @@
+from newsfeeds.services import NewsFeedService
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +8,6 @@ from tweets.services import TweetService
 from utils import helpers
 from utils.decorators import required_all_params
 from utils.paginations import EndlessPagination
-import newsfeeds.services
 
 
 
@@ -40,7 +40,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             return helpers.validation_errors_response(serializer.errors)
 
         tweet = serializer.save()
-        newsfeeds.services.fan_out(user=request.user, tweet=tweet)
+        NewsFeedService.fan_out(tweet=tweet)
         return Response(TweetSerializer(tweet, context={'user': request.user}).data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk):
