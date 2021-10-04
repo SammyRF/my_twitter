@@ -1,6 +1,7 @@
-from rest_framework.response import Response
-from rest_framework import status
 from functools import wraps
+from rest_framework import status
+from rest_framework.response import Response
+from utils.caches.ratelimit_helper import RateLimitHelper
 
 def required_all_params(method='GET', params=tuple()):
     def decorator(view_func):
@@ -42,6 +43,25 @@ def required_any_params(method='GET', params=tuple()):
                     'success': False,
                     'message': f'All of required params are missing: {", ".join(params)}'
                 }, status=status.HTTP_400_BAD_REQUEST)
+            return view_func(instance, request, *arg, **kwargs)
+        return _wrapped_view
+    return decorator
+
+def ratelimit(hms=(0, 10, 0)):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(instance, request, *arg, **kwargs):
+            if not RateLimitHelper.check_limit(
+                    api_path=request.path,
+                    api_name=view_func.__name__,
+                    user_id=request.user.id,
+                    hms=hms,
+            ):
+                return Response({
+                    'success': False,
+                    'message': f'request is over rate limit'
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
             return view_func(instance, request, *arg, **kwargs)
         return _wrapped_view
     return decorator

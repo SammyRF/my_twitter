@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
-from utils.decorators import required_all_params
+from utils.decorators import required_all_params, ratelimit
 
 
 class LikeViewSet(viewsets.GenericViewSet):
@@ -14,6 +14,7 @@ class LikeViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     @required_all_params(method='POST', params=('content_type', 'object_id'))
+    @ratelimit(hms=(0, 6, 0))
     def create(self, request):
         serializer = LikeSerializerForCreate(
             data=request.data,
@@ -28,6 +29,7 @@ class LikeViewSet(viewsets.GenericViewSet):
 
     @action(methods=['POST'], detail=False)
     @required_all_params(method='POST', params=('content_type', 'object_id'))
+    @ratelimit(hms=(0, 6, 0))
     def cancel(self, request):
         serializer = LikeSerializerForCancel(
             data=request.data,

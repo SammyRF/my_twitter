@@ -21,6 +21,7 @@ from accounts.api.serializers import (
     UserProfileSerializerForUpdate,
 )
 from utils import helpers
+from utils.decorators import ratelimit
 from utils.permissions import IsObjectOwner
 
 
@@ -38,6 +39,7 @@ class AccountViewSet(viewsets.ViewSet):
     permission_classes = (AllowAny, )
 
     @action(methods=['POST'], detail=False)
+    @ratelimit(hms=(0, 6, 0))
     def login(self, request):
         # check input
         serializer = UserSerializerForLogin(data=request.data)
@@ -63,6 +65,7 @@ class AccountViewSet(viewsets.ViewSet):
         }, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
+    @ratelimit(hms=(0, 6, 0))
     def logout(self, request):
         django_logout(request)
         return Response({
@@ -70,12 +73,14 @@ class AccountViewSet(viewsets.ViewSet):
         }, status=status.HTTP_200_OK)
 
     @action(methods=['GET'], detail=False)
+    @ratelimit(hms=(0, 6, 0))
     def login_status(self, request):
         return Response({
             'has_logged_in': request.user.is_authenticated,
         }, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
+    @ratelimit(hms=(0, 6, 0))
     def signup(self, request):
         # check input
         serializer = UserSerializerForSignup(data=request.data)
@@ -93,6 +98,7 @@ class AccountViewSet(viewsets.ViewSet):
         }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False)
+    @ratelimit(hms=(0, 6, 0))
     def signoff(self, request):
         # check input
         serializer = UserSerializerForLogin(data=request.data)

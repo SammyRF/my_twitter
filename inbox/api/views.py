@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
-from utils.decorators import required_all_params
+from utils.decorators import required_all_params, ratelimit
 from utils.permissions import IsObjectOwner
 
 
@@ -17,6 +17,7 @@ class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixi
         return Notification.objects.filter(recipient=self.request.user)
 
     @action(methods=['GET'], detail=False, url_path='unread-count')
+    @ratelimit(hms=(0, 6, 0))
     def unread_count(self, request):
         count = Notification.objects.filter(recipient=request.user, unread=True).count()
         return Response({
@@ -25,6 +26,7 @@ class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixi
         }, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False, url_path='mark-all-as-read')
+    @ratelimit(hms=(0, 6, 0))
     def mark_all_as_read(self, request):
         count = Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
         return Response({
@@ -33,6 +35,7 @@ class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixi
         }, status=status.HTTP_200_OK)
 
     @required_all_params(method='POST', params=('unread',))
+    @ratelimit(hms=(0, 6, 0))
     def update(self, request, pk):
         serializer = NotificationSerializerForUpdate(
             instance=self.get_object(),
