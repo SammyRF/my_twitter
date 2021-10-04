@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
 from tweets.models import Tweet
 from utils.caches.memcached_helper import MemcachedHelper
 
 
+# models
 class NewsFeed(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
@@ -22,11 +24,12 @@ class NewsFeed(models.Model):
         return MemcachedHelper.get_object_through_cache(Tweet, self.tweet_id)
 
 
+# listeners
 def extend_newsfeed_in_redis(sender, instance, created, **kwargs):
     if not created:
         return
-
     from newsfeeds.services import NewsFeedService
     NewsFeedService.extend_cached_newsfeed(instance)
 
-models.signals.post_save.connect(extend_newsfeed_in_redis, sender=NewsFeed)
+# redis
+post_save.connect(extend_newsfeed_in_redis, sender=NewsFeed)

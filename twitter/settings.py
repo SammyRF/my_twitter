@@ -153,6 +153,7 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # setup local storage
 MEDIA_ROOT = 'media/'
+MEDIA_URL = '/media/'
 
 # if running tests, use local storage instead
 TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)

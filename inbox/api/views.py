@@ -12,7 +12,9 @@ from utils.permissions import IsObjectOwner
 class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
     serializer_class = NotificationSerializer
     permission_classes = (IsAuthenticated, IsObjectOwner)
-    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user)
 
     @action(methods=['GET'], detail=False, url_path='unread-count')
     def unread_count(self, request):

@@ -1,12 +1,15 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.signals import pre_delete, post_save
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
-from utils import helpers, signal_helpers
+from utils import helpers
+from utils.helpers import invalidate_object_cache
 from utils.caches.memcached_helper import MemcachedHelper
 
 
+# models
 class Tweet(models.Model):
     content = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,12 +61,16 @@ class TweetPhoto(models.Model):
         return f'{self.tweet_id}: {self.file}'
 
 
+# listeners
 def push_tweet_to_cache(sender, instance, created, **kwargs):
     if not created:
         return
-
     from tweets.services import TweetService
     TweetService.extend_cached_tweet(instance)
 
-signal_helpers.register_model_changed(Tweet)
-models.signals.post_save.connect(push_tweet_to_cache, sender=Tweet)
+# memcached
+post_save.connect(invalidate_object_cache, sender=Tweet)
+pre_delete.connect(invalidate_object_cache, sender=Tweet)
+
+# redis
+post_save.connect(push_tweet_to_cache, sender=Tweet)

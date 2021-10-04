@@ -1,7 +1,10 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import pre_delete, post_save
 from utils.caches.memcached_helper import MemcachedHelper
 
+
+# models
 class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     from_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="from_user_set")
@@ -24,9 +27,11 @@ class Friendship(models.Model):
         return MemcachedHelper.get_object_through_cache(User, self.to_user_id)
 
 
+# listeners
 def on_friendship_changed(sender, instance, **kwargs):
     from friendships.services import FriendshipService
     FriendshipService.invalidate_to_users_cache(instance.from_user_id)
 
-models.signals.pre_delete.connect(on_friendship_changed, sender=Friendship)
-models.signals.post_save.connect(on_friendship_changed, sender=Friendship)
+# memcached
+pre_delete.connect(on_friendship_changed, sender=Friendship)
+post_save.connect(on_friendship_changed, sender=Friendship)
