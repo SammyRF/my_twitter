@@ -202,6 +202,10 @@ CELERY_QUEUES = (
     Queue('newsfeeds', routing_key='newsfeeds'),
 )
 
+# rate limit
+RATE_LIMIT_ENABLE = not TESTING
+RATE_LIMIT_PREFIX = 'rate-limit'
+
 try:
     from .local_settings import *
 except:

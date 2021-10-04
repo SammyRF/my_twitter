@@ -1,15 +1,20 @@
 from newsfeeds.api.serializers import NewsFeedSerializer
-from rest_framework import viewsets
 from newsfeeds.models import NewsFeed
-from rest_framework.permissions import IsAuthenticated
-from utils.paginations import EndlessPagination
 from newsfeeds.services import NewsFeedService
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from utils.decorators import ratelimit
+from utils.paginations import EndlessPagination
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = EndlessPagination
 
+    def get_queryset(self):
+        return NewsFeed.objects.filter(user_id=self.request.user.id)
+
+    @ratelimit(hms=(0, 6, 0))
     def list(self, request):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
         page = self.paginator.paginate_cached_list(request, cached_newsfeeds)

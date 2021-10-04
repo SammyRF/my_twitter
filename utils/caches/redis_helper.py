@@ -78,6 +78,3 @@ class RedisHelper:
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
             return getattr(obj, attr)
         return int(conn.get(key))
-
-
-
