@@ -3,7 +3,7 @@ from newsfeeds.models import NewsFeed
 from newsfeeds.services import NewsFeedService
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from utils.decorators import ratelimit
+from utils.decorators import rate_limit
 from utils.paginations import EndlessPagination
 
 
@@ -14,7 +14,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         return NewsFeed.objects.filter(user_id=self.request.user.id)
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def list(self, request):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
         page = self.paginator.paginate_cached_list(request, cached_newsfeeds)

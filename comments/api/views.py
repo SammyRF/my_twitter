@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from utils import helpers
-from utils.decorators import required_all_params, ratelimit
+from utils.decorators import required_all_params, rate_limit
 from utils.permissions import IsObjectOwner
 
 
@@ -24,7 +24,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def create(self, request, *arg, **kwargs):
         data = {
             'user_id': request.user.id,
@@ -42,7 +42,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def update(self, request, *arg, **kwargs):
         serializer = CommentSerializerForUpdate(
             instance=self.get_object(),
@@ -57,7 +57,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK,
         )
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def destroy(self, request, *arg, **kwargs):
         comment = self.get_object()
         comment.delete()
@@ -67,7 +67,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         }, status=status.HTTP_200_OK)
 
     @required_all_params(method='GET', params=('tweet_id',))
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def list(self, request, *arg, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
@@ -76,7 +76,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             'comments': serializer.data
         }, status=status.HTTP_200_OK)
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def retrieve(self, request, pk):
         comment = Comment.objects.filter(id=pk).first()
         if comment:

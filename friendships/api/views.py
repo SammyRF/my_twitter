@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
-from utils.decorators import required_all_params, ratelimit
+from utils.decorators import required_all_params, rate_limit
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -14,7 +14,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     queryset = Friendship.objects.all()
     pagination_class = FriendshipPagination
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def list(self, request):
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
@@ -33,7 +33,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated,])
     @required_all_params(method='POST', params=('user_id',))
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def follow(self, request):
         to_user_id = request.data.get('user_id')
 
@@ -59,7 +59,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
     @required_all_params(method='POST', params=('user_id',))
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def unfollow(self, request):
         to_user_id = request.data.get('user_id')
         if str(request.user.id) == to_user_id:

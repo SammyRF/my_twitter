@@ -6,7 +6,7 @@ from tweets.api.serializers import TweetSerializer, TweetSerializerForCreate, Tw
 from tweets.models import Tweet
 from tweets.services import TweetService
 from utils import helpers
-from utils.decorators import required_all_params, ratelimit
+from utils.decorators import required_all_params, rate_limit
 from utils.paginations import EndlessPagination
 
 
@@ -22,7 +22,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         return [IsAuthenticated()]
 
     @required_all_params(method='GET', params=('user_id',))
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def list(self, request):
         # get cached tweets from redis first, even cache hit not means the cached tweets fulfill the page.
         # reason is we introduce the list size limit in redis. In such case it return None and go DB search again.
@@ -35,7 +35,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         serializer = TweetSerializer(page, context={'user': request.user}, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def create(self, request, *args, **kwargs):
         serializer = TweetSerializerForCreate(data=request.data, context={'user': request.user})
         if not serializer.is_valid():
@@ -45,7 +45,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         NewsFeedService.fan_out(tweet=tweet)
         return Response(TweetSerializer(tweet, context={'user': request.user}).data, status=status.HTTP_201_CREATED)
 
-    @ratelimit(hms=(0, 6, 0))
+    @rate_limit(hms=(0, 6, 0))
     def retrieve(self, request, pk):
         tweet = Tweet.objects.filter(id=pk).first()
         if tweet:
