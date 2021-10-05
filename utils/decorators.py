@@ -47,7 +47,7 @@ def required_any_params(method='GET', params=tuple()):
         return _wrapped_view
     return decorator
 
-def rate_limit(hms=(0, 10, 0)):
+def rate_limit(hms=(120, 10, 3)):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(instance, request, *arg, **kwargs):
