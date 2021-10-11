@@ -91,6 +91,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'twitter.wsgi.application'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -105,7 +106,7 @@ DATABASES = {
         'HOST': '0.0.0.0',
         'PORT': '3306',
         'USER': 'django',
-        'PASSWORD': 'yourpassword',    # 这里是自己下载mysql时候输入两次的那个密码
+        'PASSWORD': 'yourpassword',
     }
 }
 
@@ -140,8 +141,6 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -150,7 +149,6 @@ STATIC_URL = '/static/'
 
 # setup S3 as uploaded file storage
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # setup local storage
 MEDIA_ROOT = 'media/'
@@ -164,7 +162,7 @@ if TESTING:
 # https://docs.djangoproject.com/en/3.1/topics/cache/
 # sudo apt-get install memcached
 # use pip install python-memcached
-# DO NOT pip install memcache or django-memcached
+# DO NOT pip install memcached or django-memcached
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -194,7 +192,8 @@ AWS_S3_REGION_NAME = 'eu-central-1'
 
 # Celery Configuration Options
 # celery -A twitter worker -l INFO
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = 'amqp://guest@localhost'
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_ALWAYS_EAGER = TESTING
 CELERY_QUEUES = (
@@ -208,5 +207,5 @@ RATE_LIMIT_PREFIX = 'rate-limit'
 
 try:
     from .local_settings import *
-except:
-    pass
+except (Exception,):
+    print("local_setting not found")
