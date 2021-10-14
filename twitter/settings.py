@@ -205,6 +205,11 @@ CELERY_QUEUES = (
 RATE_LIMIT_ENABLE = not TESTING
 RATE_LIMIT_PREFIX = 'rate-limit'
 
+# hbase
+# start hbase: sudo bin/start-hbase.sh
+# visit hbase: http://http://192.168.33.10:16010
+# start thrift: sudo bin/hbase-daemon.sh start thrift
+
 try:
     from .local_settings import *
 except (Exception,):
