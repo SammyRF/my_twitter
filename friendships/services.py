@@ -1,5 +1,5 @@
 from friendships.models import Friendship
-from utils.caches.memcached_helper import TO_USERS_PATTERN, project_cache
+from utils.memcached.memcached_helper import TO_USERS_PATTERN, project_cache
 
 
 class FriendshipService:

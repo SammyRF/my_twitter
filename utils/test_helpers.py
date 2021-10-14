@@ -6,7 +6,7 @@ from django.core.cache import caches
 from friendships.models import Friendship
 from likes.models import Like
 from tweets.models import Tweet
-from utils.caches.redis_client import RedisClient
+from utils.redis.redis_client import RedisClient
 
 
 class TestHelpers:

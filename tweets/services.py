@@ -1,5 +1,5 @@
 from tweets.models import Tweet
-from utils.caches.redis_helper import RedisHelper, USER_TWEETS_PATTERN
+from utils.redis.redis_helper import RedisHelper, USER_TWEETS_PATTERN
 
 
 class TweetService:

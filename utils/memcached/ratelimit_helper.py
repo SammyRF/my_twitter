@@ -1,4 +1,4 @@
-from utils.caches.redis_client import RedisClient
+from utils.redis.redis_client import RedisClient
 from datetime import datetime
 from django.conf import settings
 

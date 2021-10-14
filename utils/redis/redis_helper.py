@@ -1,6 +1,6 @@
 from django.conf import settings
-from utils.caches.redis_client import RedisClient
-from utils.caches.redis_serializers import DjangoModelSerializer
+from utils.redis.redis_client import RedisClient
+from utils.redis.redis_serializers import DjangoModelSerializer
 
 USER_TWEETS_PATTERN = 'user_tweets:{user_id}'
 USER_NEWSFEEDS_PATTERN = 'user_newsfeeds:{user_id}'
