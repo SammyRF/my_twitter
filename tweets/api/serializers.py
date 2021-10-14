@@ -4,7 +4,7 @@ from likes.api.serializers import LikeSerializer
 from likes.services import LikeServices
 from rest_framework import serializers
 from tweets.models import Tweet, TweetPhoto
-from utils.caches.redis_helper import RedisHelper
+from utils.redis.redis_helper import RedisHelper
 
 
 class TweetSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@ from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers
 from utils.helpers import invalidate_object_cache
-from utils.caches.memcached_helper import MemcachedHelper
+from utils.memcached.memcached_helper import MemcachedHelper
 
 
 # models

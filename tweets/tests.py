@@ -1,8 +1,8 @@
 from django.test import TestCase
 from tweets.models import TweetPhoto
 from tweets.services import TweetService
-from utils.caches.redis_client import RedisClient
-from utils.caches.redis_serializers import DjangoModelSerializer
+from utils.redis.redis_client import RedisClient
+from utils.redis.redis_serializers import DjangoModelSerializer
 from utils.test_helpers import TestHelpers
 
 

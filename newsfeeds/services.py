@@ -1,6 +1,6 @@
 from friendships.models import Friendship
 from newsfeeds.models import NewsFeed
-from utils.caches.redis_helper import RedisHelper, USER_NEWSFEEDS_PATTERN
+from utils.redis.redis_helper import RedisHelper, USER_NEWSFEEDS_PATTERN
 from newsfeeds.tasks import fan_out_main_task
 
 

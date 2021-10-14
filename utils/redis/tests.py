@@ -1,6 +1,6 @@
 from utils.test_helpers import TestHelpers
 from django.test import TestCase
-from utils.caches.redis_client import RedisClient
+from utils.redis.redis_client import RedisClient
 
 
 class UtilTests(TestCase):

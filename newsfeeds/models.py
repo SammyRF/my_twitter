@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from tweets.models import Tweet
-from utils.caches.memcached_helper import MemcachedHelper
+from utils.memcached.memcached_helper import MemcachedHelper
 
 
 # models

@@ -151,8 +151,8 @@ STATIC_URL = '/static/'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # setup local storage
-MEDIA_ROOT = 'media/'
-MEDIA_URL = '/media/'
+MEDIA_ROOT = 'dependencies/media/'
+MEDIA_URL = '/dependencies/media/'
 
 # if running tests, use local storage instead
 TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
@@ -207,8 +207,10 @@ RATE_LIMIT_PREFIX = 'rate-limit'
 
 # hbase
 # start hbase: sudo bin/start-hbase.sh
-# visit hbase: http://http://192.168.33.10:16010
+# visit hbase: http://192.168.33.10:16010
 # start thrift: sudo bin/hbase-daemon.sh start thrift
+# HBase Database
+HBASE_HOST = '127.0.0.1'
 
 try:
     from .local_settings import *

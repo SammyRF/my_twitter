@@ -2,10 +2,7 @@
 .vagrant
 .idea
 .pycharm_helpers
-media/
-src/
-hbase-2.4.6/
-thrift-0.15.0/
+dependencies/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

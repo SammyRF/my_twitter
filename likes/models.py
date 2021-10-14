@@ -3,8 +3,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import pre_delete, post_save
-from utils.caches.memcached_helper import MemcachedHelper
-from utils.caches.redis_helper import RedisHelper
+from utils.memcached.memcached_helper import MemcachedHelper
+from utils.redis.redis_helper import RedisHelper
 
 
 # models
