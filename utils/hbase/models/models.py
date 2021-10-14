@@ -123,3 +123,4 @@ class HBaseModel:
             key = column_key[column_key.index(':') + 1:]
             data[key] = fields[key].deserialize(column_value)
         return cls(**data)
+    
