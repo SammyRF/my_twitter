@@ -1,7 +1,6 @@
 from django.core.serializers.json import DjangoJSONEncoder
 import datetime
 
-
 class JSONEncoder(DjangoJSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
