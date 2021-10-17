@@ -13,7 +13,7 @@ class TestHelpers:
     @classmethod
     def clear_cache(cls):
         RedisClient.clear()
-        caches['testing'].clear()
+        caches['default'].clear()
 
 
     @classmethod

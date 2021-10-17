@@ -9,7 +9,7 @@ USER_NEWSFEEDS_PATTERN = 'user_newsfeeds:{user_id}'
 class RedisHelper:
 
     @classmethod
-    def get_objects_from_redis(cls, key, queryset):
+    def get_objects_in_redis(cls, key, queryset):
         conn = RedisClient.get_connection()
 
         # if redis hit
@@ -47,7 +47,7 @@ class RedisHelper:
         return f'{obj.__class__.__name__}.{attr}:{obj.id}'
 
     @classmethod
-    def incr_count(cls, obj, attr):
+    def incr_count_in_redis(cls, obj, attr):
         conn = RedisClient.get_connection()
         key = cls.get_count_key(obj, attr)
         if not conn.exists(key):
@@ -58,7 +58,7 @@ class RedisHelper:
         return conn.incr(key)
 
     @classmethod
-    def decr_count(cls, obj, attr):
+    def decr_count_in_redis(cls, obj, attr):
         conn = RedisClient.get_connection()
         key = cls.get_count_key(obj, attr)
         if not conn.exists(key):
@@ -69,7 +69,7 @@ class RedisHelper:
         return conn.decr(key)
 
     @classmethod
-    def get_count(cls, obj, attr):
+    def get_count_in_redis(cls, obj, attr):
         conn = RedisClient.get_connection()
         key = cls.get_count_key(obj, attr)
         if not conn.exists(key):

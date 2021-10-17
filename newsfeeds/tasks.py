@@ -35,7 +35,7 @@ def fan_out_batch_task(tweet_id, from_user_ids):
 
     # bulk_create will not trigger post_save, need to put to redis manually
     for newsfeed in newsfeeds:
-        NewsFeedService.extend_cached_newsfeed(newsfeed)
+        NewsFeedService.extend_newsfeed_in_redis(newsfeed)
 
     return f'{len(newsfeeds)} newsfeeds are created.'
 

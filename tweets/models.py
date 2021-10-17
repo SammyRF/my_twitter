@@ -5,8 +5,7 @@ from django.db.models.signals import pre_delete, post_save
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils import helpers
-from utils.helpers import invalidate_object_cache
-from utils.memcached.memcached_helper import MemcachedHelper
+from utils.memcached.memcached_helper import MemcachedHelper, invalidate_object_in_memcached
 
 
 # models
@@ -37,7 +36,7 @@ class Tweet(models.Model):
 
     @property
     def cached_user(self):
-        return MemcachedHelper.get_object_through_cache(User, self.user_id)
+        return MemcachedHelper.get_object_in_memcached(User, self.user_id)
 
 
 class TweetPhoto(models.Model):
@@ -64,15 +63,15 @@ class TweetPhoto(models.Model):
 
 
 # listeners
-def push_tweet_to_cache(sender, instance, created, **kwargs):
+def extend_tweet_in_redis(sender, instance, created, **kwargs):
     if not created:
         return
     from tweets.services import TweetService
-    TweetService.extend_cached_tweet(instance)
+    TweetService.extend_tweet_in_redis(instance)
 
 # memcached
-post_save.connect(invalidate_object_cache, sender=Tweet)
-pre_delete.connect(invalidate_object_cache, sender=Tweet)
+post_save.connect(invalidate_object_in_memcached, sender=Tweet)
+pre_delete.connect(invalidate_object_in_memcached, sender=Tweet)
 
 # redis
-post_save.connect(push_tweet_to_cache, sender=Tweet)
+post_save.connect(extend_tweet_in_redis, sender=Tweet)

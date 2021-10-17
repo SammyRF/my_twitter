@@ -15,7 +15,7 @@ class NewsFeedServiceTests(TestCase):
 
     def test_get_cached_newsfeeds(self):
         # no newsfeed
-        newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user1.id)
+        newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
         self.assertEqual(newsfeeds, [])
 
         # post tweets
@@ -23,18 +23,18 @@ class NewsFeedServiceTests(TestCase):
         self.user1_client.post('/api/tweets/', {'content': 'tweet2'})
 
         # redis miss and load
-        newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user1.id)
+        newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
         newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet2', 'tweet1'])
 
         # redis hit
-        newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user1.id)
+        newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
         newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet2', 'tweet1'])
 
         # extend newsfeed
         self.user1_client.post('/api/tweets/', {'content': 'tweet3'})
-        newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user1.id)
+        newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
         newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet3', 'tweet2', 'tweet1'])
 

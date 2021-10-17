@@ -1,7 +1,7 @@
 from functools import wraps
 from rest_framework import status
 from rest_framework.response import Response
-from utils.memcached.ratelimit_helper import RateLimitHelper
+from utils.ratelimit.ratelimit_helper import RateLimitHelper
 
 def required_all_params(method='GET', params=tuple()):
     def decorator(view_func):
