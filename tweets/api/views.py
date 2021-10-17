@@ -27,7 +27,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         # get cached tweets from redis first, even cache hit not means the cached tweets fulfill the page.
         # reason is we introduce the list size limit in redis. In such case it return None and go DB search again.
         # The cached objects will be kept no change, because it always cached objects from newest.
-        cached_tweets = TweetService.get_cached_tweets(request.query_params['user_id'])
+        cached_tweets = TweetService.get_tweets_in_redis(request.query_params['user_id'])
         page = self.paginator.paginate_cached_list(request, cached_tweets)
         if page is None:
             queryset = Tweet.objects.filter(user_id=request.query_params['user_id']).order_by('-created_at')

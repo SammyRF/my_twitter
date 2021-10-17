@@ -32,10 +32,10 @@ class Comment(models.Model):
 
     @property
     def cached_user(self):
-        return MemcachedHelper.get_object_through_cache(User, self.user_id)
+        return MemcachedHelper.get_object_in_memcached(User, self.user_id)
 
 # listeners
-def incr_comments_count(sender, instance, created, **kwargs):
+def incr_comments_count_in_redis(sender, instance, created, **kwargs):
     from tweets.models import Tweet
     from django.db.models import F
 
@@ -43,15 +43,15 @@ def incr_comments_count(sender, instance, created, **kwargs):
         return
 
     Tweet.objects.filter(id=instance.tweet_id).update(comments_count=F('comments_count') + 1)
-    RedisHelper.incr_count(instance.tweet, 'comments_count')
+    RedisHelper.incr_count_in_redis(instance.tweet, 'comments_count')
 
-def decr_comments_count(sender, instance, **kwargs):
+def decr_comments_count_in_redis(sender, instance, **kwargs):
     from tweets.models import Tweet
     from django.db.models import F
 
     Tweet.objects.filter(id=instance.tweet_id).update(comments_count=F('comments_count') - 1)
-    RedisHelper.decr_count(instance.tweet, 'comments_count')
+    RedisHelper.decr_count_in_redis(instance.tweet, 'comments_count')
 
 # redis
-pre_delete.connect(decr_comments_count, sender=Comment)
-post_save.connect(incr_comments_count, sender=Comment)
+post_save.connect(incr_comments_count_in_redis, sender=Comment)
+pre_delete.connect(decr_comments_count_in_redis, sender=Comment)

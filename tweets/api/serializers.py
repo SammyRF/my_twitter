@@ -31,10 +31,10 @@ class TweetSerializer(serializers.ModelSerializer):
         return LikeServices.has_liked(self.context['user'], obj)
 
     def get_likes_count(self, obj):
-        return RedisHelper.get_count(obj, 'likes_count')
+        return RedisHelper.get_count_in_redis(obj, 'likes_count')
 
     def get_comments_count(self, obj):
-        return RedisHelper.get_count(obj, 'comments_count')
+        return RedisHelper.get_count_in_redis(obj, 'comments_count')
 
     def get_photo_urls(self, obj):
         return [photo.file.url for photo in obj.tweetphoto_set.all().order_by('order')]
@@ -63,10 +63,10 @@ class TweetSerializerForDetails(TweetSerializer):
         return LikeServices.has_liked(self.context['user'], obj)
 
     def get_likes_count(self, obj):
-        return RedisHelper.get_count(obj, 'likes_count')
+        return RedisHelper.get_count_in_redis(obj, 'likes_count')
 
     def get_comments_count(self, obj):
-        return RedisHelper.get_count(obj, 'comments_count')
+        return RedisHelper.get_count_in_redis(obj, 'comments_count')
 
     def get_photo_urls(self, obj):
         return [photo.file.url for photo in obj.tweetphoto_set.all().order_by('order')]

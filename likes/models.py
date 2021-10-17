@@ -24,11 +24,11 @@ class Like(models.Model):
 
     @property
     def cached_user(self):
-        return MemcachedHelper.get_object_through_cache(User, self.user_id)
+        return MemcachedHelper.get_object_in_memcached(User, self.user_id)
 
 
 # listeners
-def incr_likes_count(sender, instance, created, **kwargs):
+def incr_likes_count_in_redis(sender, instance, created, **kwargs):
     from tweets.models import Tweet
     from comments.models import Comment
     from django.db.models import F
@@ -38,26 +38,26 @@ def incr_likes_count(sender, instance, created, **kwargs):
 
     if isinstance(instance.content_object, Tweet):
         Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
-        RedisHelper.incr_count(instance.content_object, 'likes_count')
+        RedisHelper.incr_count_in_redis(instance.content_object, 'likes_count')
 
     if isinstance(instance.content_object, Comment):
         Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
-        RedisHelper.incr_count(instance.content_object, 'likes_count')
+        RedisHelper.incr_count_in_redis(instance.content_object, 'likes_count')
 
-def decr_likes_count(sender, instance, **kwargs):
+def decr_likes_count_in_redis(sender, instance, **kwargs):
     from tweets.models import Tweet
     from comments.models import Comment
     from django.db.models import F
 
     if isinstance(instance.content_object, Tweet):
         Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
-        RedisHelper.decr_count(instance.content_object, 'likes_count')
+        RedisHelper.decr_count_in_redis(instance.content_object, 'likes_count')
 
     if isinstance(instance.content_object, Comment):
         Tweet.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
-        RedisHelper.decr_count(instance.content_object, 'likes_count')
+        RedisHelper.decr_count_in_redis(instance.content_object, 'likes_count')
 
 
 # redis
-pre_delete.connect(decr_likes_count, sender=Like)
-post_save.connect(incr_likes_count, sender=Like)
+post_save.connect(incr_likes_count_in_redis, sender=Like)
+pre_delete.connect(decr_likes_count_in_redis, sender=Like)

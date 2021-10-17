@@ -20,18 +20,18 @@ class Friendship(models.Model):
 
     @property
     def cached_from_user(self):
-        return MemcachedHelper.get_object_through_cache(User, self.from_user_id)
+        return MemcachedHelper.get_object_in_memcached(User, self.from_user_id)
 
     @property
     def cached_to_user(self):
-        return MemcachedHelper.get_object_through_cache(User, self.to_user_id)
+        return MemcachedHelper.get_object_in_memcached(User, self.to_user_id)
 
 
 # listeners
-def on_friendship_changed(sender, instance, **kwargs):
+def invalidate_to_users_in_memcached(sender, instance, **kwargs):
     from friendships.services import FriendshipService
-    FriendshipService.invalidate_to_users_cache(instance.from_user_id)
+    FriendshipService.invalidate_to_users_in_memcached(instance.from_user_id)
 
 # memcached
-pre_delete.connect(on_friendship_changed, sender=Friendship)
-post_save.connect(on_friendship_changed, sender=Friendship)
+pre_delete.connect(invalidate_to_users_in_memcached, sender=Friendship)
+post_save.connect(invalidate_to_users_in_memcached, sender=Friendship)

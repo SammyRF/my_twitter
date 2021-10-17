@@ -16,7 +16,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
 
     @rate_limit(hms=(0, 6, 0))
     def list(self, request):
-        cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
+        cached_newsfeeds = NewsFeedService.get_newsfeeds_in_redis(request.user.id)
         page = self.paginator.paginate_cached_list(request, cached_newsfeeds)
         if page is None:
             queryset = NewsFeed.objects.filter(user=request.user).order_by('-created_at')

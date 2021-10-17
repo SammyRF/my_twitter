@@ -42,7 +42,7 @@ class TweetServiceTests(TestCase):
 
     def test_get_cached_tweets(self):
         # no tweets
-        tweets = TweetService.get_cached_tweets(self.user1.id)
+        tweets = TweetService.get_tweets_in_redis(self.user1.id)
         self.assertEqual(tweets, [])
 
         # create tweets
@@ -50,16 +50,16 @@ class TweetServiceTests(TestCase):
         tweet2 = TestHelpers.create_tweet(self.user1, 'tweet2')
 
         # redis miss
-        tweets = TweetService.get_cached_tweets(self.user1.id)
+        tweets = TweetService.get_tweets_in_redis(self.user1.id)
         self.assertEqual(tweets, [tweet2, tweet1])
 
         # redis hit
-        tweets = TweetService.get_cached_tweets(self.user1.id)
+        tweets = TweetService.get_tweets_in_redis(self.user1.id)
         self.assertEqual(tweets, [tweet2, tweet1])
 
         # redis extend object
         tweet3 = TestHelpers.create_tweet(self.user1, 'tweet3')
-        tweets = TweetService.get_cached_tweets(self.user1.id)
+        tweets = TweetService.get_tweets_in_redis(self.user1.id)
         self.assertEqual(tweets, [tweet3, tweet2, tweet1])
 
 

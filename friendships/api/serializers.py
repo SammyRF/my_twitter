@@ -12,7 +12,7 @@ class ToUsersMixin:
             return {}
         if hasattr(self, '_cached_to_users_of_request_user'):
             return self._cached_to_users_of_request_user
-        to_users_of_request_user = FriendshipService.get_to_users(self.context['user'].id)
+        to_users_of_request_user = FriendshipService.get_to_users_in_memcached(self.context['user'].id)
         setattr(self, '_cached_to_users_of_request_user', to_users_of_request_user)
         return to_users_of_request_user
 

@@ -13,13 +13,13 @@ class NewsFeedService:
         fan_out_main_task.delay(tweet.id, tweet.user_id)
 
     @classmethod
-    def get_cached_newsfeeds(cls, user_id):
+    def get_newsfeeds_in_redis(cls, user_id):
         queryset = NewsFeed.objects.filter(user_id=user_id).order_by('-created_at')
         key = USER_NEWSFEEDS_PATTERN.format(user_id=user_id)
-        return RedisHelper.get_objects_from_redis(key, queryset)
+        return RedisHelper.get_objects_in_redis(key, queryset)
 
     @classmethod
-    def extend_cached_newsfeed(cls, newsfeed):
+    def extend_newsfeed_in_redis(cls, newsfeed):
         queryset = NewsFeed.objects.filter(user_id=newsfeed.user_id).order_by('-created_at')
         key = USER_NEWSFEEDS_PATTERN.format(user_id=newsfeed.user_id)
         RedisHelper.extend_object_in_redis(key, newsfeed, queryset)

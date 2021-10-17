@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-from kombu import Queue
 from pathlib import Path
 import sys
 
@@ -30,7 +29,6 @@ ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost', '0.0.0.0']
 INTERNAL_IPS = ['10.0.2.2', '172.17.0.1']
 
 # Application definition
-
 INSTALLED_APPS = [
     # django default
     'django.contrib.admin',
@@ -73,6 +71,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'twitter.urls'
+
 USE_TZ = True
 
 TEMPLATES = [
@@ -91,14 +90,13 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'twitter.wsgi.application'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -113,7 +111,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -132,87 +129,34 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 STATIC_URL = '/static/'
 
-# setup S3 as uploaded file storage
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # setup local storage
 MEDIA_ROOT = 'dependencies/media/'
 MEDIA_URL = '/dependencies/media/'
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-# if running tests, use local storage instead
+
+# check testing flag
 TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
-if TESTING:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-# https://docs.djangoproject.com/en/3.1/topics/cache/
-# sudo apt-get install memcached
-# use pip install python-memcached
-# DO NOT pip install memcached or django-memcached
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': 86400,
-    },
-    'testing': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': 86400,
-        'KEY_PREFIX': 'testing',
-    },
-}
 
-# Redis
-# sudo apt-get install redis
-# pip install redis
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = 6379
-REDIS_DB = 0 if TESTING else 1
-REDIS_KEY_EXPIRE_TIME = 7 * 86400  # in seconds
-REDIS_LIST_LENGTH_LIMIT = 1000 if not TESTING else 10
-
-# S3 config
-AWS_STORAGE_BUCKET_NAME = '42-twitter'
-AWS_S3_REGION_NAME = 'eu-central-1'
-
-# Celery Configuration Options
-# celery -A twitter worker -l INFO
-# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
-CELERY_BROKER_URL = 'amqp://guest@localhost'
-CELERY_TIMEZONE = "UTC"
-CELERY_TASK_ALWAYS_EAGER = TESTING
-CELERY_QUEUES = (
-    Queue('default', routing_key='default'),
-    Queue('newsfeeds', routing_key='newsfeeds'),
-)
-
-# rate limit
-RATE_LIMIT_ENABLE = not TESTING
-RATE_LIMIT_PREFIX = 'rate-limit'
-
-# hbase
-# start hbase: sudo bin/start-hbase.sh
-# visit hbase: http://192.168.33.10:16010
-# start thrift: sudo bin/hbase-daemon.sh start thrift
-# HBase Database
-HBASE_HOST = '127.0.0.1'
-
+# loading settings
 try:
+    from utils.hbase.settings import *
+    from utils.memcached.settings import *
+    from utils.ratelimit.settings import *
+    from utils.redis.settings import *
+    from utils.celery.settings import *
     from .local_settings import *
 except (Exception,):
-    print("local_setting not found")
+    print('settings has issue')
