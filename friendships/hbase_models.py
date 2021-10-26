@@ -1,7 +1,7 @@
 from utils.hbase import models
 
 
-class HBaseToUser(models.HBaseModel):
+class HBaseFromUser(models.HBaseModel):
     # row key
     from_user_id = models.IntegerField(reverse=True)
     created_at = models.TimestampField()
@@ -13,7 +13,7 @@ class HBaseToUser(models.HBaseModel):
         row_key = ('from_user_id', 'created_at')
 
 
-class HBaseFromUser(models.HBaseModel):
+class HBaseToUser(models.HBaseModel):
     # row key
     to_user_id = models.IntegerField(reverse=True)
     created_at = models.TimestampField()

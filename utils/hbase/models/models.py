@@ -1,5 +1,6 @@
-from utils.hbase.models import HBaseField
+from django.conf import settings
 from utils.hbase.hbase_client import HBaseClient
+from utils.hbase.models import HBaseField
 from utils.hbase.models.exceptions import EmptyColumnError, BadRowKeyError
 
 
@@ -44,10 +45,8 @@ class HBaseModel:
 
     @classmethod
     def get_table(cls):
-        if not cls.Meta.table_name:
-            raise NotImplementedError('Missing table_name in meta class')
         conn = HBaseClient.get_connection()
-        return conn.table(cls.Meta.table_name)
+        return conn.table(cls.get_table_name())
 
     @classmethod
     def get_field_hash(cls):
@@ -123,4 +122,35 @@ class HBaseModel:
             key = column_key[column_key.index(':') + 1:]
             data[key] = fields[key].deserialize(column_value)
         return cls(**data)
-    
+
+    @classmethod
+    def get_table_name(cls):
+        if not cls.Meta.table_name:
+            raise NotImplementedError('Missing table_name in meta class')
+        if settings.TESTING:
+            return f'testing_{cls.Meta.table_name}'
+        return cls.Meta.table_name
+
+    @classmethod
+    def create_table(cls):
+        conn = HBaseClient.get_connection()
+        tables = [table.decode('utf_8') for table in conn.tables()]
+        # check if table exists already
+        if cls.get_table_name() in tables:
+            return
+        column_families = {
+            field.column_family : dict()
+            for key, field in cls.get_field_hash().items()
+            if field.column_family is not None
+        }
+        conn.create_table(cls.get_table_name(), column_families)
+
+    @classmethod
+    def delete_table(cls):
+        conn = HBaseClient.get_connection()
+        tables = [table.decode('utf_8') for table in conn.tables()]
+        if not cls.get_table_name() in tables:
+            return
+        conn.delete_table(cls.get_table_name(), True)
+
+

@@ -2,19 +2,20 @@ from accounts.models import UserProfile
 from comments.models import Comment
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import caches
 from friendships.models import Friendship
 from likes.models import Like
 from tweets.models import Tweet
+from utils.hbase.hbase_client import HBaseClient
+from utils.memcached.memcached_helper import project_memcached
 from utils.redis.redis_client import RedisClient
 
 
 class TestHelpers:
     @classmethod
     def clear_cache(cls):
+        project_memcached.clear()
         RedisClient.clear()
-        caches['default'].clear()
-
+        HBaseClient.clear()
 
     @classmethod
     def create_user(cls, username='admin', password='correct password', email='admin@admin.com'):
