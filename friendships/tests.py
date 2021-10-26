@@ -90,3 +90,43 @@ class HBaseTests(TestCase):
         except BadRowKeyError:
             exception_raised = True
         self.assertTrue(exception_raised)
+
+    def test_filter(self):
+        HBaseFromUser.create(from_user_id=1, to_user_id=2, created_at=self.ts_now)
+        HBaseFromUser.create(from_user_id=1, to_user_id=3, created_at=self.ts_now)
+        HBaseFromUser.create(from_user_id=1, to_user_id=4, created_at=self.ts_now)
+
+        # test prefix
+        to_users = HBaseFromUser.filter(prefix=(1,))
+        self.assertEqual(len(to_users), 3)
+        self.assertEqual(to_users[0].to_user_id, 2)
+        self.assertEqual(to_users[1].to_user_id, 3)
+        self.assertEqual(to_users[2].to_user_id, 4)
+
+        # test limit greater than total
+        to_users = HBaseFromUser.filter(prefix=(1,), limit=4)
+        self.assertEqual(len(to_users), 3)
+
+        # test limit smaller than total
+        to_users = HBaseFromUser.filter(prefix=(1,), limit=1)
+        self.assertEqual(len(to_users), 1)
+        self.assertEqual(to_users[0].to_user_id, 2)
+
+        # test start
+        to_users = HBaseFromUser.filter(start=(1, to_users[0].created_at,))
+        self.assertEqual(len(to_users), 3)
+        self.assertEqual(to_users[0].to_user_id, 2)
+        self.assertEqual(to_users[1].to_user_id, 3)
+        self.assertEqual(to_users[2].to_user_id, 4)
+
+        # test stop
+        to_users = HBaseFromUser.filter(stop=(1, to_users[0].created_at,))
+        self.assertEqual(len(to_users), 0)
+
+        # test reverse
+        to_users = HBaseFromUser.filter(prefix=(1,), reverse=True)
+        self.assertEqual(len(to_users), 3)
+        self.assertEqual(to_users[0].to_user_id, 4)
+        self.assertEqual(to_users[1].to_user_id, 3)
+        self.assertEqual(to_users[2].to_user_id, 2)
+

@@ -57,7 +57,7 @@ class HBaseModel:
         return field_hash
 
     @classmethod
-    def serialize_row_key(cls, data):
+    def serialize_row_key(cls, data, is_prefix=False):
         """
         serialize dict to bytes (not str)
         {key1: val1} => b"val1"
@@ -71,7 +71,9 @@ class HBaseModel:
                 continue
             value = data.get(key)
             if value is None:
-                raise BadRowKeyError(f'{key} is missing in row key')
+                if not is_prefix:
+                    raise BadRowKeyError(f'{key} is missing in row key')
+                break
             value = field.serialize(value)
             if ':' in value:
                 raise BadRowKeyError(f'{key} should not contain ":" in value {value}')
@@ -95,6 +97,16 @@ class HBaseModel:
             value = fields[key].deserialize(values[i])
             data[key] = value
         return data
+
+    @classmethod
+    def serialize_row_key_from_tuple(cls, row_key_tuple):
+        if not row_key_tuple:
+            return None
+        data = {
+            key: value
+            for key, value in zip(cls.Meta.row_key, row_key_tuple)
+        }
+        return cls.serialize_row_key(data, is_prefix=True)
 
     @classmethod
     def serialize_row_data(cls, data):
@@ -153,4 +165,24 @@ class HBaseModel:
             return
         conn.delete_table(cls.get_table_name(), True)
 
+    @classmethod
+    def filter(cls, start=None, stop=None, prefix=None, limit=None, reverse=False):
+        row_start = cls.serialize_row_key_from_tuple(start)
+        row_stop = cls.serialize_row_key_from_tuple(stop)
+        row_prefix = cls.serialize_row_key_from_tuple(prefix)
+
+        # scan table with conditions
+        rows = cls.get_table().scan(
+            row_start=row_start,
+            row_stop=row_stop,
+            row_prefix=row_prefix,
+            limit=limit,
+            reverse=reverse
+        )
+
+        # deserialize
+        return [
+            cls.deserialize_row_data(row_key, row_data)
+            for row_key, row_data in rows
+        ]
 
