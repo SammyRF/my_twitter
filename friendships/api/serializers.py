@@ -3,36 +3,48 @@ from friendships.models import Friendship
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 from friendships.services import FriendshipService
+from accounts.services import UserService
 
 
-class ToUsersMixin:
-    @property
-    def to_users_of_request_user(self: serializers.ModelSerializer):
-        if self.context['user'].is_anonymous:
-            return {}
-        if hasattr(self, '_cached_to_users_of_request_user'):
-            return self._cached_to_users_of_request_user
-        to_users_of_request_user = FriendshipService.get_to_users_in_memcached(self.context['user'].id)
-        setattr(self, '_cached_to_users_of_request_user', to_users_of_request_user)
-        return to_users_of_request_user
-
-
-class FriendshipSerializer(serializers.ModelSerializer, ToUsersMixin):
-    from_user = UserSerializerWithProfile(source='cached_from_user')
-    to_user = UserSerializerWithProfile(source='cached_to_user')
-    created_at = serializers.DateTimeField()
+class FriendshipSerializer(serializers.Serializer):
+    from_user = serializers.SerializerMethodField()
+    to_user = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
     followed_from_user = serializers.SerializerMethodField()
     followed_to_user = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Friendship
-        fields = ('from_user', 'to_user', 'created_at', 'followed_from_user', 'followed_to_user')
+    def get_from_user(self, obj):
+        user = UserService.get_user_in_memcached(obj.from_user_id)
+        return UserSerializer(user).data
+
+    def get_to_user(self, obj):
+        user = UserService.get_user_in_memcached(obj.to_user_id)
+        return UserSerializer(user).data
+
+    def get_created_at(self, obj):
+        return obj.created_at
 
     def get_followed_from_user(self, obj):
-        return obj.from_user_id in self.to_users_of_request_user
+        if self.context['user'].is_anonymous:
+            return False
+        return FriendshipService.has_followed(
+            from_user_id=self.context['user'].id,
+            to_user_id=obj.from_user_id,
+        )
 
     def get_followed_to_user(self, obj):
-        return obj.to_user_id in self.to_users_of_request_user
+        if self.context['user'].is_anonymous:
+            return False
+        return FriendshipService.has_followed(
+            from_user_id=self.context['user'].id,
+            to_user_id=obj.to_user_id,
+        )
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
 
 
 class FriendshipForCreateSerializer(serializers.ModelSerializer):
@@ -53,4 +65,4 @@ class FriendshipForCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         from_user_id = validated_data['from_user_id']
         to_user_id = validated_data['to_user_id']
-        return Friendship.objects.create(from_user_id=from_user_id, to_user_id=to_user_id)
+        return FriendshipService.follow(from_user_id=from_user_id, to_user_id=to_user_id)

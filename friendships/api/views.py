@@ -1,32 +1,25 @@
 from friendships.api.paginations import FriendshipPagination
 from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
+from friendships.services import FriendshipService
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
-from utils.decorators import required_all_params, rate_limit
+from utils.decorators import required_all_params, required_any_params, rate_limit
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
-    queryset = Friendship.objects.all()
     pagination_class = FriendshipPagination
 
+    @required_any_params(method='GET', params=('from_user_id', 'to_user_id'))
     @rate_limit(hms=(0, 6, 0))
     def list(self, request):
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
-        if from_user_id and to_user_id:
-            friendships = Friendship.objects.filter(from_user_id=from_user_id, to_user_id=to_user_id).order_by('-created_at')
-        elif from_user_id:
-            friendships = Friendship.objects.filter(from_user_id=from_user_id).order_by('-created_at')
-        elif to_user_id:
-            friendships = Friendship.objects.filter(to_user_id=to_user_id).order_by('-created_at')
-        else:
-            friendships = Friendship.objects.all().order_by('-created_at')
-
+        friendships = FriendshipService.get_friendships(from_user_id=from_user_id, to_user_id=to_user_id)
         page = self.paginate_queryset(friendships)
         serializer = FriendshipSerializer(page, context={'user': request.user}, many=True)
         return self.get_paginated_response(serializer.data)
@@ -38,7 +31,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         to_user_id = request.data.get('user_id')
 
         # if friendship exists, skip
-        if Friendship.objects.filter(from_user=request.user, to_user_id=to_user_id).exists():
+        if FriendshipService.has_followed(from_user_id=request.user.id, to_user_id=to_user_id):
             return Response({
                 'success': True,
                 'message': 'friendship exists',
@@ -68,13 +61,13 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'message': 'user cannot unfollow himself',
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if not Friendship.objects.filter(from_user=request.user, to_user_id=to_user_id).exists():
+        if not FriendshipService.has_followed(from_user_id=request.user.id, to_user_id=to_user_id):
             return Response({
                 'success': False,
                 'message': 'friendship not found',
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        Friendship.objects.filter(from_user_id=request.user.id, to_user_id=to_user_id).delete()
+        FriendshipService.unfollow(from_user_id=request.user.id, to_user_id=to_user_id)
         return Response({
             'success': True,
             'message': 'friendship deleted'

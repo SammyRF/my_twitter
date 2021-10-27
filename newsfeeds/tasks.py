@@ -1,6 +1,7 @@
 from celery import shared_task
 from django.conf import settings
 from friendships.models import Friendship
+from friendships.services import FriendshipService
 from newsfeeds.models import NewsFeed
 
 FANOUT_TIME_LIMIT = 3600 # 1hour
@@ -12,7 +13,7 @@ def fan_out_main_task(tweet_id, tweet_user_id):
     # add user self first, make sure that user can see it in his own newsfeed fast
     NewsFeed.objects.create(user_id=tweet_user_id, tweet_id=tweet_id)
 
-    friendships = Friendship.objects.filter(to_user=tweet_user_id)
+    friendships = FriendshipService.get_friendships(to_user_id=tweet_user_id)
     from_user_ids = [friendship.from_user_id for friendship in friendships]
     idx = 0
     while idx < len(from_user_ids):
