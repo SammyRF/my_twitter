@@ -2,9 +2,10 @@ from accounts.models import UserProfile
 from comments.models import Comment
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from friendships.models import Friendship
+from friendships.services import FriendshipService
 from likes.models import Like
 from tweets.models import Tweet
+from utils.gatekeeper.gatekeepers import GateKeeper
 from utils.hbase.hbase_client import HBaseClient
 from utils.memcached.memcached_helper import project_memcached
 from utils.redis.redis_client import RedisClient
@@ -16,6 +17,7 @@ class TestHelpers:
         project_memcached.clear()
         RedisClient.clear()
         HBaseClient.clear()
+        GateKeeper.turn_on('switch_friendship_to_hbase')
 
     @classmethod
     def create_user(cls, username='admin', password='correct password', email='admin@admin.com'):
@@ -31,7 +33,7 @@ class TestHelpers:
 
     @classmethod
     def create_friendship(cls, from_user, to_user):
-        return Friendship.objects.create(from_user=from_user, to_user=to_user)
+        return FriendshipService.follow(from_user_id=from_user.id, to_user_id=to_user.id)
 
     @classmethod
     def create_comment(cls, user, tweet, content="default comment content"):

@@ -1,8 +1,13 @@
 from accounts.models import UserProfile
-from utils.memcached.memcached_helper import USER_PROFILE_PATTERN, project_memcached
+from django.contrib.auth.models import User
+from utils.memcached.memcached_helper import USER_PROFILE_PATTERN, project_memcached, MemcachedHelper
 
 
 class UserService:
+
+    @classmethod
+    def get_user_in_memcached(cls, user_id):
+        return MemcachedHelper.get_object_in_memcached(User, user_id)
 
     @classmethod
     def get_userprofile_in_memcached(cls, user_id):

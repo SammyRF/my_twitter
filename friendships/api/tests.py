@@ -113,10 +113,11 @@ class FriendshipsApiTests(TestCase):
         page_size = FriendshipPagination.page_size
         for i in range(page_size * 2):
             follower = TestHelpers.create_user('friendship_{}'.format(i))
-            Friendship.objects.create(from_user=follower, to_user=self.user1)
+            TestHelpers.create_friendship(from_user=follower, to_user=self.user1)
 
         # no params return first page
-        response = self.anonymous_client.get(LIST_NO_PARAMS)
+        page = LIST_TO_USER_URL + str(self.user1.id)
+        response = self.anonymous_client.get(page)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), page_size)
         self.assertEqual(response.data['total_pages'], 2)
@@ -129,7 +130,7 @@ class FriendshipsApiTests(TestCase):
             self.assertEqual(result['followed_to_user'], False)
 
 
-        page = BASE_FRIENDSHIPS_URL.format('?page=')
+        page += '&page='
         # anonymous hasn't followed any users
         response = self.anonymous_client.get(page + '1')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

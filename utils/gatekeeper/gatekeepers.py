@@ -26,5 +26,9 @@ class GateKeeper:
         return cls.get(gk_name)['percent'] == 100
 
     @classmethod
+    def turn_on(cls, gk_name):
+        cls.set(gk_name, 'percent', 100)
+
+    @classmethod
     def uid_in_gk(cls, uid, gk_name):
         return (uid % 100) < cls.get(gk_name)['percent']
