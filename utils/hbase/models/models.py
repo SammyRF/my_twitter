@@ -40,8 +40,7 @@ class HBaseModel:
     def delete(cls, **kwargs):
         row_key = cls.serialize_row_key(kwargs)
         table = cls.get_table()
-        x = table.delete(row_key)
-        return x
+        return table.delete(row_key)
 
     @classmethod
     def get(cls, **kwargs):
