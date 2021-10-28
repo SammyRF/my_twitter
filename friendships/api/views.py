@@ -1,4 +1,3 @@
-from friendships.api.paginations import FriendshipPagination
 from friendships.api.serializers import FriendshipSerializer, FriendshipForCreateSerializer
 from friendships.models import Friendship
 from friendships.services import FriendshipService
@@ -8,21 +7,35 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
 from utils.decorators import required_all_params, required_any_params, rate_limit
+from utils.gatekeeper.gatekeepers import GateKeeper
+from utils.paginations import EndlessPagination
+from friendships.hbase_models import HBaseFromUser, HBaseToUser
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipForCreateSerializer
-    pagination_class = FriendshipPagination
+    pagination_class = EndlessPagination
 
     @required_any_params(method='GET', params=('from_user_id', 'to_user_id'))
     @rate_limit(hms=(0, 6, 0))
     def list(self, request):
         from_user_id = request.query_params.get('from_user_id')
         to_user_id = request.query_params.get('to_user_id')
-        friendships = FriendshipService.get_friendships(from_user_id=from_user_id, to_user_id=to_user_id)
-        page = self.paginate_queryset(friendships)
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            # pagination in mysql
+            if from_user_id:
+                friendships = Friendship.objects.filter(from_user_id=from_user_id).order_by('-created_at')
+            else:
+                friendships = Friendship.objects.filter(to_user_id=to_user_id).order_by('-created_at')
+            page = self.paginate_queryset(friendships)
+        else:
+            # pagination in hbase
+            if from_user_id:
+                page = self.paginator.paginate_hbase(HBaseFromUser, (from_user_id, ), request)
+            else:
+                page = self.paginator.paginate_hbase(HBaseToUser, (to_user_id,), request)
         serializer = FriendshipSerializer(page, context={'user': request.user}, many=True)
-        return self.get_paginated_response(serializer.data)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated,])
     @required_all_params(method='POST', params=('user_id',))

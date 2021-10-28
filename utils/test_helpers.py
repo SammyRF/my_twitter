@@ -16,8 +16,11 @@ class TestHelpers:
     def clear_cache(cls):
         project_memcached.clear()
         RedisClient.clear()
-        HBaseClient.clear()
-        GateKeeper.turn_on('switch_friendship_to_hbase')
+
+        # test hbase
+        if 1:
+            GateKeeper.turn_on('switch_friendship_to_hbase')
+            HBaseClient.clear()
 
     @classmethod
     def create_user(cls, username='admin', password='correct password', email='admin@admin.com'):

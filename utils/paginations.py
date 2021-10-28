@@ -59,6 +59,40 @@ class EndlessPagination(BasePagination):
         self.has_next_page = len(queryset) > self.page_size
         return queryset[:self.page_size]
 
+    def paginate_hbase(self, hbase_model, row_key_prefix, request):
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = int(request.query_params['created_at__gt'])
+            start = (*row_key_prefix, 9999999999999999)
+            stop = (*row_key_prefix, created_at__gt)
+            objects = hbase_model.filter(start=start, stop=stop, reverse=True)
+            if objects and objects[-1].created_at == created_at__gt:
+                objects.pop()
+            return objects
+
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = int(request.query_params['created_at__lt'])
+            start = (*row_key_prefix, created_at__lt)
+            stop = (*row_key_prefix, )
+            objects = hbase_model.filter(start=start, stop=stop, limit=self.page_size + 2, reverse=True)
+            if objects and objects[0].created_at == created_at__lt:
+                objects.pop(0)
+            if len(objects) > self.page_size:
+                self.has_next_page = True
+                objects.pop()
+            else:
+                self.has_next_page = False
+            return objects
+
+        # if no param, load first page
+        prefix = (*row_key_prefix, )
+        objects = hbase_model.filter(prefix=prefix, limit=self.page_size + 1, reverse=True)
+        if len(objects) > self.page_size:
+            self.has_next_page = True
+            objects.pop()
+        else:
+            self.has_next_page = False
+        return objects
+
     def get_paginated_response(self, data):
         return Response({
             'has_next_page': self.has_next_page,

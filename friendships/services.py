@@ -1,7 +1,7 @@
-from friendships.models import Friendship
-from utils.memcached.memcached_helper import TO_USERS_PATTERN, project_memcached
-from utils.gatekeeper.gatekeepers import GateKeeper
 from friendships.hbase_models import HBaseFromUser, HBaseToUser
+from friendships.models import Friendship
+from utils.gatekeeper.gatekeepers import GateKeeper
+from utils.memcached.memcached_helper import TO_USERS_PATTERN, project_memcached
 import time
 
 

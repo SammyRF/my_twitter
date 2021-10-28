@@ -1,9 +1,8 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
+from utils.paginations import EndlessPagination
 from utils.test_helpers import TestHelpers
-from friendships.api.paginations import FriendshipPagination
-from friendships.models import Friendship
 
 BASE_FRIENDSHIPS_URL = '/api/friendships/{}'
 LIST_NO_PARAMS = BASE_FRIENDSHIPS_URL.format('')
@@ -109,8 +108,7 @@ class FriendshipsApiTests(TestCase):
         self.assertEqual(response.data['message'], 'friendship not found')
 
     def test_friendship_pagination(self):
-        max_page_size = FriendshipPagination.max_page_size
-        page_size = FriendshipPagination.page_size
+        page_size = EndlessPagination.page_size
         for i in range(page_size * 2):
             follower = TestHelpers.create_user('friendship_{}'.format(i))
             TestHelpers.create_friendship(from_user=follower, to_user=self.user1)
@@ -120,43 +118,27 @@ class FriendshipsApiTests(TestCase):
         response = self.anonymous_client.get(page)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 1)
         self.assertEqual(response.data['has_next_page'], True)
-        self.assertEqual(len(response.data['results']), page_size)
         for result in response.data['results']:
             self.assertEqual(result['followed_from_user'], False)
             self.assertEqual(result['followed_to_user'], False)
 
-
-        page += '&page='
+        page += '&created_at__lt='
         # anonymous hasn't followed any users
-        response = self.anonymous_client.get(page + '1')
+        created_at = str(response.data['results'][-1]['created_at']).replace('+', '%2B')
+        response = self.anonymous_client.get(page + created_at)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 1)
-        self.assertEqual(response.data['has_next_page'], True)
-        self.assertEqual(len(response.data['results']), page_size)
-        for result in response.data['results']:
-            self.assertEqual(result['followed_from_user'], False)
-            self.assertEqual(result['followed_to_user'], False)
-
-        response = self.anonymous_client.get(page + '2')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 2)
         self.assertEqual(response.data['has_next_page'], False)
         for result in response.data['results']:
             self.assertEqual(result['followed_from_user'], False)
             self.assertEqual(result['followed_to_user'], False)
 
-        response = self.anonymous_client.get(page + '3')
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        created_at = str(response.data['results'][-1]['created_at']).replace('+', '%2B')
+        response = self.anonymous_client.get(page + created_at)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['has_next_page'], False)
+        self.assertEqual(len(response.data['results']), 0)
 
 
 
