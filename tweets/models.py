@@ -38,6 +38,10 @@ class Tweet(models.Model):
     def cached_user(self):
         return MemcachedHelper.get_object_in_memcached(User, self.user_id)
 
+    @property
+    def timestamp(self):
+        return int(self.created_at.timestamp() * 1000000)
+
 
 class TweetPhoto(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)

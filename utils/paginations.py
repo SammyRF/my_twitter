@@ -16,13 +16,19 @@ class EndlessPagination(BasePagination):
 
     def _pagination_ordered_list(self, request, objects):
         if 'created_at__gt' in request.query_params:
-            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            try:
+                created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            except ValueError:
+                created_at__gt = int(request.query_params['created_at__gt'])
             self.has_next_page = False
             return [obj for obj in objects if obj.created_at > created_at__gt]
 
         idx = 0
         if 'created_at__lt' in request.query_params:
-            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            try:
+                created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            except ValueError:
+                created_at__lt = int(request.query_params['created_at__lt'])
             for idx, obj in enumerate(objects):
                 if obj.created_at < created_at__lt:
                     break

@@ -26,18 +26,18 @@ class NewsFeedServiceTests(TestCase):
 
         # redis miss and load
         newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
-        newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
+        newsfeeds = [newsfeed.cached_tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet2', 'tweet1'])
 
         # redis hit
         newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
-        newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
+        newsfeeds = [newsfeed.cached_tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet2', 'tweet1'])
 
         # extend newsfeed
         self.user1_client.post('/api/tweets/', {'content': 'tweet3'})
         newsfeeds = NewsFeedService.get_newsfeeds_in_redis(self.user1.id)
-        newsfeeds = [newsfeed.tweet.content for newsfeed in newsfeeds]
+        newsfeeds = [newsfeed.cached_tweet.content for newsfeed in newsfeeds]
         self.assertEqual(newsfeeds, ['tweet3', 'tweet2', 'tweet1'])
 
 
@@ -51,7 +51,7 @@ class NewsFeedTaskTests(TestCase):
             user = TestHelpers.create_user(username=f'user{i}')
             TestHelpers.create_friendship(user, self.admin)
         tweet = TestHelpers.create_tweet(self.admin)
-        msg = fan_out_main_task(tweet.id, tweet.user_id)
+        msg = fan_out_main_task(tweet.id, tweet.user_id, tweet.timestamp)
         self.assertEqual(msg, '4 newsfeeds fan out with 2 batches.')
 
 
