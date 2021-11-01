@@ -17,7 +17,7 @@ class NewsFeed(models.Model):
         ordering = ('user', '-created_at')
 
     def __str__(self):
-        return f'{self.created_at} {self.user}: {self.tweet}'
+        return f'{self.created_at} inbox of {self.user}: {self.tweet}'
 
     @property
     def cached_tweet(self):
