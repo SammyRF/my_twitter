@@ -1,6 +1,6 @@
 from django.conf import settings
 from utils.redis.redis_client import RedisClient
-from utils.redis.redis_serializers import DjangoModelSerializer
+from utils.redis.redis_serializers import DjangoModelSerializer, HBaseModelSerializer
 
 USER_TWEETS_PATTERN = 'user_tweets:{user_id}'
 USER_NEWSFEEDS_PATTERN = 'user_newsfeeds:{user_id}'
@@ -9,7 +9,7 @@ USER_NEWSFEEDS_PATTERN = 'user_newsfeeds:{user_id}'
 class RedisHelper:
 
     @classmethod
-    def get_objects_in_redis(cls, key, queryset):
+    def get_objects_in_redis_from_sql(cls, key, queryset):
         conn = RedisClient.get_connection()
 
         # if redis hit
@@ -18,15 +18,32 @@ class RedisHelper:
             return [DjangoModelSerializer.deserialize(obj_data) for obj_data in serialized_list]
 
         # when not hit, load objects into redis
-        objects = list(queryset)
-        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in objects[:settings.REDIS_LIST_LENGTH_LIMIT]]
+        objects = list(queryset[:settings.REDIS_LIST_LENGTH_LIMIT])
+        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in objects]
         if serialized_list:
             conn.rpush(key, *serialized_list)
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
         return objects
 
     @classmethod
-    def extend_object_in_redis(cls, key, obj, queryset):
+    def get_objects_in_redis_from_hbase(cls, key, query_func):
+        conn = RedisClient.get_connection()
+
+        # if redis hit
+        if conn.exists(key):
+            serialized_list = conn.lrange(key, 0, -1)
+            return [HBaseModelSerializer.deserialize(obj_data) for obj_data in serialized_list]
+
+        # when not hit, load objects into redis
+        objects = query_func(settings.REDIS_LIST_LENGTH_LIMIT)
+        serialized_list = [HBaseModelSerializer.serialize(obj) for obj in objects]
+        if serialized_list:
+            conn.rpush(key, *serialized_list)
+            conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return objects
+
+    @classmethod
+    def extend_object_in_redis_from_sql(cls, key, obj, queryset):
         conn = RedisClient.get_connection()
 
         # if redis hit
@@ -37,7 +54,26 @@ class RedisHelper:
             return
 
         # if not hit, load from DB
-        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in queryset]
+        objects = list(queryset[:settings.REDIS_LIST_LENGTH_LIMIT])
+        serialized_list = [DjangoModelSerializer.serialize(obj) for obj in objects]
+        if serialized_list:
+            conn.rpush(key, *serialized_list)
+            conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+
+    @classmethod
+    def extend_object_in_redis_from_hbase(cls, key, obj, query_func):
+        conn = RedisClient.get_connection()
+
+        # if redis hit
+        if conn.exists(key):
+            serialized_obj = HBaseModelSerializer.serialize(obj)
+            conn.lpush(key, serialized_obj)
+            conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
+            return
+
+        # if not hit, load from DB
+        objects = query_func(settings.REDIS_LIST_LENGTH_LIMIT)
+        serialized_list = [HBaseModelSerializer.serialize(obj) for obj in objects]
         if serialized_list:
             conn.rpush(key, *serialized_list)
             conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)

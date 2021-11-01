@@ -19,8 +19,9 @@ class TestHelpers:
         HBaseClient.clear()
 
         # test hbase
-        if 1:
+        if 0:
             GateKeeper.turn_on('switch_friendship_to_hbase')
+            GateKeeper.turn_on('switch_newsfeed_to_hbase')
 
 
     @classmethod

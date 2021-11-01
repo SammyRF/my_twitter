@@ -48,13 +48,13 @@ class HBaseModel:
     def bulk_create(cls, bulk_data):
         table = cls.get_table()
         batch = table.batch()
-        res = []
+        instances = []
         for data in bulk_data:
             instance = cls(**data)
-            res.append(instance)
+            instances.append(instance)
             batch.put(instance.row_key, instance.row_data)
         batch.send()
-        return res
+        return instances
 
     @classmethod
     def delete(cls, **kwargs):
