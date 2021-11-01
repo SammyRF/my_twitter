@@ -71,6 +71,7 @@ MIDDLEWARE = [
     'utils.middlewares.ReportTimeMiddleware',
 ]
 
+
 ROOT_URLCONF = 'twitter.urls'
 
 TEMPLATES = [

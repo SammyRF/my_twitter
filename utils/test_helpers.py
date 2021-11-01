@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from friendships.services import FriendshipService
 from likes.models import Like
 from tweets.models import Tweet
-from utils.gatekeeper.gatekeepers import GateKeeper
+from utils.gatekeeper.models import GateKeeper
 from utils.hbase.hbase_client import HBaseClient
 from utils.memcached.memcached_helper import project_memcached
 from utils.redis.redis_client import RedisClient
@@ -16,11 +16,12 @@ class TestHelpers:
     def clear_cache(cls):
         project_memcached.clear()
         RedisClient.clear()
+        HBaseClient.clear()
 
         # test hbase
         if 1:
             GateKeeper.turn_on('switch_friendship_to_hbase')
-            HBaseClient.clear()
+
 
     @classmethod
     def create_user(cls, username='admin', password='correct password', email='admin@admin.com'):

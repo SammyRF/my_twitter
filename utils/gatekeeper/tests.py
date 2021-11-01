@@ -1,6 +1,6 @@
 from django.test import TestCase
 from utils.test_helpers import TestHelpers
-from utils.gatekeeper.gatekeepers import GateKeeper
+from utils.gatekeeper.models import GateKeeper
 
 
 class GateKeeperTests(TestCase):

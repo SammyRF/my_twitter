@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from utils import helpers
 from utils.decorators import required_all_params, required_any_params, rate_limit
-from utils.gatekeeper.gatekeepers import GateKeeper
+from utils.gatekeeper.models import GateKeeper
 from utils.paginations import EndlessPagination
 from friendships.hbase_models import HBaseFromUser, HBaseToUser
 

@@ -28,7 +28,7 @@ class FriendshipServiceTests(TestCase):
         self.assertSetEqual(to_users, {self.user3.id, self.user4.id})
 
 
-class HBaseTests(TestCase):
+class FriendshipsHBaseTests(TestCase):
 
     def setUp(self):
         TestHelpers.clear_cache()

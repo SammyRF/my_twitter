@@ -16,11 +16,10 @@ class HBaseModel:
             setattr(self, field, kwargs.get(field))
 
     def save(self):
-        row_data = self.serialize_row_data(self.__dict__)
-        if len(row_data) == 0:
+        if len(self.row_data) == 0:
             raise EmptyColumnError()
         table = self.get_table()
-        table.put(self.row_key, row_data)
+        table.put(self.row_key, self.row_data)
 
     class Meta:
         table_name = None
@@ -30,11 +29,32 @@ class HBaseModel:
     def row_key(self):
         return self.serialize_row_key(self.__dict__)
 
+    # alias for row_key used by model
+    @property
+    def id(self):
+        return self.row_key
+
+    @property
+    def row_data(self):
+        return self.serialize_row_data(self.__dict__)
+
     @classmethod
     def create(cls, **kwargs):
         instance = cls(**kwargs)
         instance.save()
         return instance
+
+    @classmethod
+    def bulk_create(cls, bulk_data):
+        table = cls.get_table()
+        batch = table.batch()
+        res = []
+        for data in bulk_data:
+            instance = cls(**data)
+            res.append(instance)
+            batch.put(instance.row_key, instance.row_data)
+        batch.send()
+        return res
 
     @classmethod
     def delete(cls, **kwargs):

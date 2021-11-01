@@ -9,7 +9,7 @@ class HBaseFromUser(models.HBaseModel):
     to_user_id = models.IntegerField(column_family='cf')
 
     class Meta:
-        table_name = 'twitter_to_users'
+        table_name = 'twitter_from_users'
         row_key = ('from_user_id', 'created_at')
 
 
@@ -21,5 +21,5 @@ class HBaseToUser(models.HBaseModel):
     from_user_id = models.IntegerField(column_family='cf')
 
     class Meta:
-        table_name = 'twitter_from_users'
+        table_name = 'twitter_to_users'
         row_key = ('to_user_id', 'created_at')
