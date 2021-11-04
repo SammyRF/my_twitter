@@ -14,5 +14,3 @@ def validation_errors_response(errors):
         'message': 'Please check input',
         'errors': errors,
     }, status=status.HTTP_400_BAD_REQUEST)
-
-print("test")
